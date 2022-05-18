@@ -2,7 +2,7 @@
 // @name              哔哩哔哩（bilibili.com）播放页调整
 // @license           GPL-3.0 License
 // @namespace         https://greasyfork.org/zh-CN/scripts/415804-bilibili%E6%92%AD%E6%94%BE%E9%A1%B5%E8%B0%83%E6%95%B4-%E8%87%AA%E7%94%A8
-// @version           0.6.7
+// @version           0.6.8
 // @description       1.自动定位到播放器（进入播放页，可自动定位到播放器，可设置偏移量及是否在点击主播放器时定位）；2.可设置是否自动选择最高画质；3.可设置播放器默认模式；
 // @author            QIAN
 // @match             *://*.bilibili.com/video/*
@@ -540,12 +540,13 @@ $(function () {
     insertLocateButton () {
       const player_type = util.getValue('player_type')
       if (player_type === 'video') {
-        const locateButtonHtml = `<div class="nav-btn-item locate" title="定位至播放器">
+        const locateButtonHtml = `<div class="item locate" title="定位至播放器">
         <svg t="1643419779790" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1775" width="200" height="200" style="width: 50%;height: 100%;fill: currentColor;"><path d="M512 352c-88.008 0-160.002 72-160.002 160 0 88.008 71.994 160 160.002 160 88.01 0 159.998-71.992 159.998-160 0-88-71.988-160-159.998-160z m381.876 117.334c-19.21-177.062-162.148-320-339.21-339.198V64h-85.332v66.134c-177.062 19.198-320 162.136-339.208 339.198H64v85.334h66.124c19.208 177.062 162.144 320 339.208 339.208V960h85.332v-66.124c177.062-19.208 320-162.146 339.21-339.208H960v-85.334h-66.124zM512 810.666c-164.274 0-298.668-134.396-298.668-298.666 0-164.272 134.394-298.666 298.668-298.666 164.27 0 298.664 134.396 298.664 298.666S676.27 810.666 512 810.666z" p-id="1776"></path></svg></div>`
-        const floatNav = $('.float-nav .nav-menu')
-        const locateButton = $('.float-nav .nav-menu .nav-btn-item.locate')
+        const floatNav = $('.float-nav-exp .nav-menu')
+        const locateButton = $('.float-nav-exp .nav-menu .item.locate')
         const offset_top = util.getValue('offset_top')
         const player_offset_top = util.getValue('player_offset_top')
+        $('.fixed-nav').css('bottom','274px')
         floatNav.prepend(locateButtonHtml)
         locateButton.not(':first-child').remove()
         floatNav.on('click', '.locate', function () {
