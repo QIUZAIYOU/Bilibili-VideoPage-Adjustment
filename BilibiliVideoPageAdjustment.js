@@ -2,7 +2,7 @@
 // @name              哔哩哔哩（bilibili.com）播放页调整
 // @license           GPL-3.0 License
 // @namespace         https://greasyfork.org/zh-CN/scripts/415804-bilibili%E6%92%AD%E6%94%BE%E9%A1%B5%E8%B0%83%E6%95%B4-%E8%87%AA%E7%94%A8
-// @version           0.6.8
+// @version           0.6.9
 // @description       1.自动定位到播放器（进入播放页，可自动定位到播放器，可设置偏移量及是否在点击主播放器时定位）；2.可设置是否自动选择最高画质；3.可设置播放器默认模式；
 // @author            QIAN
 // @match             *://*.bilibili.com/video/*
@@ -112,6 +112,8 @@ $(function () {
           const player_offset_top = $('#playerWrap').offset().top
           util.setValue('player_offset_top', player_offset_top)
           $('html,body').scrollTop(player_offset_top - offset_top)
+          
+         
           if (click_player_auto_locate) {
             $('#bilibiliPlayer').on('click', function () {
               $('html,body').scrollTop(player_offset_top - offset_top)
@@ -488,27 +490,34 @@ $(function () {
         'auto_select_video_highest_quality: ' +
         util.getValue('auto_select_video_highest_quality')
       )
-      const applyChange = setInterval(async () => {
+      let applyed = false
+      const applyChanges = setInterval(async () => {
         await util.sleep(2000);
         const player_type = util.getValue('player_type')
         const selected_screen_mod = util.getValue('selected_screen_mod')
         if (player_type === 'video') {
           if (util.exist('#playerWrap #bilibiliPlayer')) {
             const playerClass = $('#bilibiliPlayer').attr('class')
-            if (util.exist('.bilibili-player-video-control-bottom')) {             
-              main.insertLocateButton()
-              main.autoSelectScreenMod()
-              main.autoLocation()
-              main.autoSelectVideoHightestQuality()
-              if (
-                (selected_screen_mod === 'normal' &&
-                  !playerClass.includes('mode-')) ||
-                (selected_screen_mod === 'widescreen' &&
-                  playerClass.includes('mode-widescreen')) ||
-                (selected_screen_mod === 'webfullscreen' &&
-                  playerClass.includes('mode-webfullscreen'))) {
-                clearInterval(applyChange)
+            if (util.exist('.bilibili-player-video-control-bottom')) {    
+              if(!applyed){
+                main.insertLocateButton()
+                main.autoSelectScreenMod()
+                main.autoLocation()
+                main.autoSelectVideoHightestQuality()
+                applyed = true
+              }else{
+                clearInterval(applyChanges)
               }
+              // if (
+              //   (selected_screen_mod === 'normal' &&
+              //     !playerClass.includes('mode-')) ||
+              //   (selected_screen_mod === 'widescreen' &&
+              //     playerClass.includes('mode-widescreen')) ||
+              //   (selected_screen_mod === 'webfullscreen' &&
+              //     playerClass.includes('mode-webfullscreen'))) {
+              //   clearInterval(applyChanges)
+              //   console.log("调整：结束")
+              // }
             }
           }
         }
@@ -517,21 +526,30 @@ $(function () {
             const playerDataScreen = $(
               '#bilibili-player .bpx-player-container'
             ).attr('data-screen')
-            if (util.exist('.squirtle-controller-wrap')) {              
-              main.insertLocateButton()
-              main.autoSelectScreenMod()
-              main.autoLocation()
-              main.autoSelectVideoHightestQuality()
-              if (
-                (selected_screen_mod === 'normal' &&
-                  playerDataScreen === 'normal') ||
-                (selected_screen_mod === 'widescreen' &&
-                  playerDataScreen === 'wide') ||
-                (selected_screen_mod === 'webfullscreen' &&
-                  playerDataScreen === 'web')
-              ) {
-                clearInterval(applyChange)
+            if (util.exist('.squirtle-controller-wrap')) {   
+              if(!applyed){
+                main.insertLocateButton()
+                main.autoSelectScreenMod()
+                main.autoLocation()
+                main.autoSelectVideoHightestQuality()
+                applyed = true
+              }else{
+                clearInterval(applyChanges)
               }
+              // main.insertLocateButton()
+              // main.autoSelectScreenMod()
+              // main.autoLocation()
+              // main.autoSelectVideoHightestQuality()
+              // if (
+              //   (selected_screen_mod === 'normal' &&
+              //     playerDataScreen === 'normal') ||
+              //   (selected_screen_mod === 'widescreen' &&
+              //     playerDataScreen === 'wide') ||
+              //   (selected_screen_mod === 'webfullscreen' &&
+              //     playerDataScreen === 'web')
+              // ) {
+              //   clearInterval(applyChanges)
+              // }
             }
           }
         }
@@ -652,7 +670,8 @@ $(function () {
       this.addPluginStyle()
       this.playerLoadStateWatcher()
       this.getCurrentPlayerTypeAndScreenMod()
-      this.autoLocation()
+      // this.autoLocation()
+      // this.autoSelectScreenMod()
       this.applySetting()
       this.playerLoadStateWatcher()
       this.autoCancelMute()
