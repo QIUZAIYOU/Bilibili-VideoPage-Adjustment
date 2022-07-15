@@ -2,7 +2,7 @@
 // @name              哔哩哔哩（bilibili.com）播放页调整
 // @license           GPL-3.0 License
 // @namespace         https://greasyfork.org/zh-CN/scripts/415804-bilibili%E6%92%AD%E6%94%BE%E9%A1%B5%E8%B0%83%E6%95%B4-%E8%87%AA%E7%94%A8
-// @version           0.7.0
+// @version           0.7.1
 // @description       1.自动定位到播放器（进入播放页，可自动定位到播放器，可设置偏移量及是否在点击主播放器时定位）；2.可设置是否自动选择最高画质；3.可设置播放器默认模式；
 // @author            QIAN
 // @match             *://*.bilibili.com/video/*
@@ -111,7 +111,7 @@ $(function () {
         if (util.exist('#playerWrap #bilibiliPlayer')) {
           const player_offset_top = $('#playerWrap').offset().top
           util.setValue('player_offset_top', player_offset_top)
-          console.log(player_offset_top,offset_top)
+          // console.log('播放页调整：',player_offset_top,offset_top)
           $('html,body').scrollTop(player_offset_top - offset_top)
           
          
@@ -186,13 +186,13 @@ $(function () {
         }
       }
     },
-    autoSelectScreenMod () {
+   autoSelectScreenMod () {
       const player_type = util.getValue('player_type')
       const current_screen_mod = util.getValue('current_screen_mod')
       const selected_screen_mod = util.getValue('selected_screen_mod')
       if (player_type === 'video') {
         if (util.exist('#playerWrap #bilibiliPlayer')) {
-          // console.log('a', current_screen_mod, selected_screen_mod);
+          // console.log('播放页调整：','a', current_screen_mod, selected_screen_mod);
           const playerClass = $('#bilibiliPlayer').attr('class')
           if (
             selected_screen_mod === 'normal' &&
@@ -206,6 +206,19 @@ $(function () {
             !playerClass.includes('mode-widescreen')
           ) {
             $('[data-text="宽屏模式"]').click()
+            console.log('播放页调整：','第一次切换：宽屏')
+            const checkClickStatus = setInterval(function(){
+              const success = $('#bilibili-player').attr('class').includes('wide')
+              if(success){
+                clearInterval(checkClickStatus)
+                console.log('播放页调整：','宽屏切换成功')
+              }else{
+                $('[data-text="宽屏模式"]').click()
+                console.log('播放页调整：','宽屏切换失败，继续尝试')
+              }
+            },1000)
+            // await util.sleep(1000)
+            // alert('已自动切换宽屏')
           }
           if (
             selected_screen_mod === 'webfullscreen' &&
@@ -213,13 +226,24 @@ $(function () {
             !playerClass.includes('mode-webfullscreen')
           ) {
             $('[data-text="网页全屏"]').click()
+            console.log('播放页调整：','第一次切换：网页全屏')
+            const checkClickStatus = setInterval(function(){
+              const success = $('#bilibili-player').attr('class').includes('webfullscreen')
+              if(success){
+                clearInterval(checkClickStatus)
+                console.log('播放页调整：','网页全屏切换成功')
+              }else{
+                $('[data-text="网页全屏"]').click()
+                console.log('播放页调整：','网页全屏切换失败，继续尝试')
+              }
+            },1000)
           }
           $('body').css('overflow', 'unset')
         }
       }
       if (player_type === 'bangumi') {
         if (util.exist('#player_module #bilibili-player')) {
-          // console.log('b', current_screen_mod, selected_screen_mod);
+          // console.log('播放页调整：','b', current_screen_mod, selected_screen_mod);
           const playerDataScreen = $(
             '#bilibili-player .bpx-player-container'
           ).attr('data-screen')
@@ -227,9 +251,7 @@ $(function () {
             selected_screen_mod === 'normal' &&
             current_screen_mod !== 'normal'
           ) {
-            $(
-              '.squirtle-controller-wrap-right .squirtle-video-item.active'
-            ).click()
+            $('.squirtle-controller-wrap-right .squirtle-video-item.active').click()
           }
           if (
             selected_screen_mod === 'widescreen' &&
@@ -237,15 +259,35 @@ $(function () {
             playerDataScreen !== 'wide'
           ) {
             $('.squirtle-widescreen-wrap .squirtle-video-widescreen').click()
+            console.log('播放页调整：','第一次切换：宽屏')
+            const checkClickStatus = setInterval(function(){
+              const success = $('#bilibili-player .bpx-player-container').attr('data-screen').includes('wide')
+              if(success){
+                clearInterval(checkClickStatus)
+                console.log('播放页调整：','宽屏切换成功')
+              }else{
+                $('.squirtle-widescreen-wrap .squirtle-video-widescreen').click()
+                console.log('播放页调整：','宽屏切换失败，继续尝试')
+              }
+            },700)
           }
           if (
             selected_screen_mod === 'webfullscreen' &&
             current_screen_mod !== 'webfullscreen' &&
             playerDataScreen !== 'web'
           ) {
-            $(
-              '.squirtle-pagefullscreen-wrap.squirtle-video-pagefullscreen'
-            ).click()
+            $('.squirtle-video-item.squirtle-video-pagefullscreen').click()
+            console.log('播放页调整：','第一次切换：网页全屏')
+            const checkClickStatus = setInterval(function(){
+              const success = $('#bilibili-player').attr('class').includes('full-screen')
+              if(success){
+                clearInterval(checkClickStatus)
+                console.log('播放页调整：','网页全屏切换成功')
+              }else{
+                $('.squirtle-video-item.squirtle-video-pagefullscreen').click()
+                console.log('播放页调整：','网页全屏切换失败，继续尝试')
+              }
+            },1000)
           }
           $('body').css('overflow', 'unset')
         }
@@ -415,7 +457,7 @@ $(function () {
         })
         $('#Click-Player-Auto-Location').change((e) => {
           util.setValue('click_player_auto_locate', e.target.checked)
-          // console.log(util.getValue('click_player_auto_locate'))
+          // console.log('播放页调整：',util.getValue('click_player_auto_locate'))
         })
         $('#Auto-Quality').change((e) => {
           util.setValue('auto_select_video_highest_quality', e.target.checked)
@@ -425,7 +467,7 @@ $(function () {
         })
         $('input[name="Screen-Mod"]').click(function () {
           util.setValue('selected_screen_mod', $(this).val())
-          // console.log(util.getValue('selected_screen_mod'));
+          // console.log('播放页调整：',util.getValue('selected_screen_mod'));
         })
       })
     },
@@ -519,7 +561,7 @@ $(function () {
               //   (selected_screen_mod === 'webfullscreen' &&
               //     playerClass.includes('mode-webfullscreen'))) {
               //   clearInterval(applyChanges)
-              //   console.log("调整：结束")
+              //   console.log('播放页调整：',"调整：结束")
               // }
             }
           }
@@ -596,7 +638,7 @@ $(function () {
           const cancelMuteButtnDisplay = cancelMuteButtn.css('display')
           if (cancelMuteButtnDisplay === 'inline') {
             cancelMuteButtn.click()
-            console.log('BiliBili播放页调整：已自动取消静音');
+            console.log('播放页调整：','BiliBili播放页调整：已自动取消静音');
           }
           if (cancelMuteButtnDisplay === 'none') {
             clearInterval(muteObserver)
@@ -609,7 +651,7 @@ $(function () {
           const cancelMuteButtnDisplay = cancelMuteButtn.css('display')
           if (cancelMuteButtnDisplay === 'inline') {
             cancelMuteButtn.click()
-            console.log('BiliBili播放页调整：已自动取消静音');
+            console.log('播放页调整：','BiliBili播放页调整：已自动取消静音');
           }
           if (cancelMuteButtnDisplay === 'none') {
             clearInterval(muteObserver)
@@ -623,7 +665,7 @@ $(function () {
         if (util.exist('#playerWrap #bilibiliPlayer')) {
           const playerLoadStateWatcher1 = setInterval(function () {
             const playerVideoBtnQualityClass = $('.bilibili-player-video-btn-quality').attr('class') || 'NULL'
-            // console.log(playerVideoBtnQualityClass);
+            // console.log('播放页调整：',playerVideoBtnQualityClass);
             if (playerVideoBtnQualityClass.includes('disabled')) {
               location.reload(true)
             } else {
@@ -632,7 +674,7 @@ $(function () {
           }, 1500)
           const playerLoadStateWatcher2 = setInterval(function () {
             const playerVideoLength = $('.bilibili-player-video').children().length
-            // console.log(playerVideoLength);
+            // console.log('播放页调整：',playerVideoLength);
             if (playerVideoLength === 0) {
               location.reload(true)
             } else {
@@ -645,7 +687,7 @@ $(function () {
         if (util.exist('#player_module #bilibili-player')) {
           // const playerLoadStateWatcher1 = setInterval(function () {
           //   const playerVideoBtnQualityClass = $('.bilibili-player-video-btn-quality').attr('class') || 'NULL'
-          //   // console.log(playerVideoBtnQualityClass);
+          //   // console.log('播放页调整：',playerVideoBtnQualityClass);
           //   if (playerVideoBtnQualityClass.includes('disabled')) {
           //     location.reload(true)
           //   } else {
@@ -654,7 +696,7 @@ $(function () {
           // }, 1000)
           const playerLoadStateWatcher2 = setInterval(function () {
             const playerVideoLength = $('.bpx-player-video-wrap').children().length
-            // console.log(playerVideoLength);
+            // console.log('播放页调整：',playerVideoLength);
             if (playerVideoLength === 0) {
               location.reload(true)
             } else {
