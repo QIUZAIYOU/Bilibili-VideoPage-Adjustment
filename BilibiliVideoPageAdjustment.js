@@ -2,7 +2,7 @@
 // @name              哔哩哔哩（bilibili.com）播放页调整
 // @license           GPL-3.0 License
 // @namespace         https://greasyfork.org/zh-CN/scripts/415804-bilibili%E6%92%AD%E6%94%BE%E9%A1%B5%E8%B0%83%E6%95%B4-%E8%87%AA%E7%94%A8
-// @version           0.7.1
+// @version           0.7.2
 // @description       1.自动定位到播放器（进入播放页，可自动定位到播放器，可设置偏移量及是否在点击主播放器时定位）；2.可设置是否自动选择最高画质；3.可设置播放器默认模式；
 // @author            QIAN
 // @match             *://*.bilibili.com/video/*
@@ -190,7 +190,8 @@ $(function () {
       const player_type = util.getValue('player_type')
       const current_screen_mod = util.getValue('current_screen_mod')
       const selected_screen_mod = util.getValue('selected_screen_mod')
-      if (player_type === 'video') {
+      $('#bilibili-player').addClass('bilibili-videopage-adjustment')
+      if (player_type === 'video') {  
         if (util.exist('#playerWrap #bilibiliPlayer')) {
           // console.log('播放页调整：','a', current_screen_mod, selected_screen_mod);
           const playerClass = $('#bilibiliPlayer').attr('class')
@@ -238,7 +239,6 @@ $(function () {
               }
             },1000)
           }
-          $('body').css('overflow', 'unset')
         }
       }
       if (player_type === 'bangumi') {
@@ -289,9 +289,10 @@ $(function () {
               }
             },1000)
           }
-          $('body').css('overflow', 'unset')
         }
       }
+      $('body').css('overflow', 'unset')
+      $('#bilibili-player').removeClass('bilibili-videopage-adjustment')
     },
     autoSelectVideoHightestQuality () {
       const player_type = util.getValue('player_type')
