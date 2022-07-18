@@ -2,7 +2,7 @@
 // @name              哔哩哔哩（bilibili.com）播放页调整
 // @license           GPL-3.0 License
 // @namespace         https://greasyfork.org/zh-CN/scripts/415804-bilibili%E6%92%AD%E6%94%BE%E9%A1%B5%E8%B0%83%E6%95%B4-%E8%87%AA%E7%94%A8
-// @version           0.7.2
+// @version           0.7.3
 // @description       1.自动定位到播放器（进入播放页，可自动定位到播放器，可设置偏移量及是否在点击主播放器时定位）；2.可设置是否自动选择最高画质；3.可设置播放器默认模式；
 // @author            QIAN
 // @match             *://*.bilibili.com/video/*
@@ -112,9 +112,31 @@ $(function () {
           const player_offset_top = $('#playerWrap').offset().top
           util.setValue('player_offset_top', player_offset_top)
           // console.log('播放页调整：',player_offset_top,offset_top)
+          console.log('播放页调整：第一次自动定位')
           $('html,body').scrollTop(player_offset_top - offset_top)
-          
-         
+          const checkAutoLocationStatus = setInterval(function(){
+            const document_scroll_top = $(document).scrollTop()
+            const success = document_scroll_top === player_offset_top - offset_top
+            if(success){
+              clearInterval(checkAutoLocationStatus)
+              console.log('播放页调整：自动定位成功')
+              $('body').css('overflow', 'unset')
+            }else{
+              console.log('播放页调整：自动定位失败，继续尝试',
+                          '\n',
+                          '-----------------',
+                          '\n',
+                          '当前顶部偏移量：'+ document_scroll_top,
+                          '\n',
+                          '播放器顶部偏移量：' + player_offset_top,
+                          '\n',
+                          '设置偏移量：' + offset_top,
+                          '\n',
+                          '期望偏移量：' + (player_offset_top - offset_top)
+                         ) 
+              $('html,body').scrollTop(player_offset_top - offset_top)
+            }
+          },1000)
           if (click_player_auto_locate) {
             $('#bilibiliPlayer').on('click', function () {
               $('html,body').scrollTop(player_offset_top - offset_top)
@@ -127,6 +149,29 @@ $(function () {
           const player_offset_top = $('#player_module').offset().top
           util.setValue('player_offset_top', player_offset_top)
           $('html,body').scrollTop(player_offset_top - offset_top)
+          const checkAutoLocationStatus = setInterval(function(){
+            const document_scroll_top = $(document).scrollTop()
+            const success = document_scroll_top === player_offset_top - offset_top
+            if(success){
+              clearInterval(checkAutoLocationStatus)
+              console.log('播放页调整：自动定位成功')
+              $('body').css('overflow', 'unset')
+            }else{
+              console.log('播放页调整：自动定位失败，继续尝试',
+                          '\n',
+                          '-----------------',
+                          '\n',
+                          '当前顶部偏移量：'+ document_scroll_top,
+                          '\n',
+                          '播放器顶部偏移量：' + player_offset_top,
+                          '\n',
+                          '设置偏移量：' + offset_top,
+                          '\n',
+                          '期望偏移量：' + (player_offset_top - offset_top)
+                         ) 
+              $('html,body').scrollTop(player_offset_top - offset_top)
+            }
+          },1000)
           if (click_player_auto_locate) {
             $('#bilibili-player').on('click', function () {
               $('html,body').scrollTop(player_offset_top - offset_top)
@@ -193,7 +238,7 @@ $(function () {
       $('#bilibili-player').addClass('bilibili-videopage-adjustment')
       if (player_type === 'video') {  
         if (util.exist('#playerWrap #bilibiliPlayer')) {
-          // console.log('播放页调整：','a', current_screen_mod, selected_screen_mod);
+          // console.log('播放页调整：','current_screen_mod, selected_screen_mod);
           const playerClass = $('#bilibiliPlayer').attr('class')
           if (
             selected_screen_mod === 'normal' &&
@@ -207,15 +252,15 @@ $(function () {
             !playerClass.includes('mode-widescreen')
           ) {
             $('[data-text="宽屏模式"]').click()
-            console.log('播放页调整：','第一次切换：宽屏')
+            console.log('播放页调整：第一次切换：宽屏')
             const checkClickStatus = setInterval(function(){
               const success = $('#bilibili-player').attr('class').includes('wide')
               if(success){
                 clearInterval(checkClickStatus)
-                console.log('播放页调整：','宽屏切换成功')
+                console.log('播放页调整：宽屏切换成功')
               }else{
                 $('[data-text="宽屏模式"]').click()
-                console.log('播放页调整：','宽屏切换失败，继续尝试')
+                console.log('播放页调整：宽屏切换失败，继续尝试')
               }
             },1000)
             // await util.sleep(1000)
@@ -227,15 +272,15 @@ $(function () {
             !playerClass.includes('mode-webfullscreen')
           ) {
             $('[data-text="网页全屏"]').click()
-            console.log('播放页调整：','第一次切换：网页全屏')
+            console.log('播放页调整：第一次切换：网页全屏')
             const checkClickStatus = setInterval(function(){
               const success = $('#bilibili-player').attr('class').includes('webfullscreen')
               if(success){
                 clearInterval(checkClickStatus)
-                console.log('播放页调整：','网页全屏切换成功')
+                console.log('播放页调整：网页全屏切换成功')
               }else{
                 $('[data-text="网页全屏"]').click()
-                console.log('播放页调整：','网页全屏切换失败，继续尝试')
+                console.log('播放页调整：网页全屏切换失败，继续尝试')
               }
             },1000)
           }
@@ -259,15 +304,15 @@ $(function () {
             playerDataScreen !== 'wide'
           ) {
             $('.squirtle-widescreen-wrap .squirtle-video-widescreen').click()
-            console.log('播放页调整：','第一次切换：宽屏')
+            console.log('播放页调整：第一次切换：宽屏')
             const checkClickStatus = setInterval(function(){
               const success = $('#bilibili-player .bpx-player-container').attr('data-screen').includes('wide')
               if(success){
                 clearInterval(checkClickStatus)
-                console.log('播放页调整：','宽屏切换成功')
+                console.log('播放页调整：宽屏切换成功')
               }else{
                 $('.squirtle-widescreen-wrap .squirtle-video-widescreen').click()
-                console.log('播放页调整：','宽屏切换失败，继续尝试')
+                console.log('播放页调整：宽屏切换失败，继续尝试')
               }
             },700)
           }
@@ -277,21 +322,20 @@ $(function () {
             playerDataScreen !== 'web'
           ) {
             $('.squirtle-video-item.squirtle-video-pagefullscreen').click()
-            console.log('播放页调整：','第一次切换：网页全屏')
+            console.log('播放页调整：第一次切换：网页全屏')
             const checkClickStatus = setInterval(function(){
               const success = $('#bilibili-player').attr('class').includes('full-screen')
               if(success){
                 clearInterval(checkClickStatus)
-                console.log('播放页调整：','网页全屏切换成功')
+                console.log('播放页调整：网页全屏切换成功')
               }else{
                 $('.squirtle-video-item.squirtle-video-pagefullscreen').click()
-                console.log('播放页调整：','网页全屏切换失败，继续尝试')
+                console.log('播放页调整：网页全屏切换失败，继续尝试')
               }
             },1000)
           }
         }
       }
-      $('body').css('overflow', 'unset')
       $('#bilibili-player').removeClass('bilibili-videopage-adjustment')
     },
     autoSelectVideoHightestQuality () {
