@@ -652,7 +652,7 @@ $(function () {
         locateButton.not(':first-child').remove()
         floatNav.on('click', '.locate', function () {
           $('html,body').scrollTop(player_offset_top - offset_top)
-          
+          // console.log('播放页调整：',player_offset_top,offset_top);
         })
       }
       if (player_type === 'bangumi') {
@@ -666,7 +666,7 @@ $(function () {
         locateButton.not(':first-child').remove()
         floatNav.on('click', '.locate', function () {
           $('html,body').scrollTop(player_offset_top - offset_top)
-          console.log('播放页调整：',player_offset_top,offset_top);
+          // console.log('播放页调整：',player_offset_top,offset_top);
         })
       }
     },
