@@ -2,7 +2,7 @@
 // @name              哔哩哔哩（bilibili.com）播放页调整
 // @license           GPL-3.0 License
 // @namespace         https://greasyfork.org/zh-CN/scripts/415804-bilibili%E6%92%AD%E6%94%BE%E9%A1%B5%E8%B0%83%E6%95%B4-%E8%87%AA%E7%94%A8
-// @version           0.7.6
+// @version           0.7.7
 // @description       1.自动定位到播放器（进入播放页，可自动定位到播放器，可设置偏移量及是否在点击主播放器时定位）；2.可设置是否自动选择最高画质；3.可设置播放器默认模式；
 // @author            QIAN
 // @match             *://*.bilibili.com/video/*
@@ -367,21 +367,24 @@ $(function () {
           if (contain_quality_4k) {
             if (player_type === 'video') {
               if (utils.exist('#playerWrap #bilibili-player')) {
-                $('.bui-select-list-wrap > ul > li').eq(0).click()
+                $('.bpx-player-ctrl-quality > ul > li').eq(0).click()
+                console.log('播放页调整：VIP最高画质（包含4K）切换成功')
               }
             }
             if (player_type === 'bangumi') {
               if (utils.exist('#player_module #bilibili-player')) {
                 $('.squirtle-quality-wrap >.squirtle-video-quality > ul > li').eq(0).click()
+                console.log('播放页调整：VIP最高画质（包含4K）切换成功')
               }
             }
           } else {
             if (player_type === 'video') {
               if (utils.exist('#playerWrap #bilibili-player')) {
-                const qualityValue = $('.bui-select-list-wrap > ul > li').filter(function () {
+                const qualityValue = $('.bpx-player-ctrl-quality > ul > li').filter(function () {
                   return !$(this).children('span.bilibili-player-video-quality-text').text().includes('4K')
                 })
                 qualityValue.eq(0).click()
+                console.log('播放页调整：VIP最高画质（不包含4K）切换成功')
               }
             }
             if (player_type === 'bangumi') {
@@ -390,6 +393,7 @@ $(function () {
                   return !$(this).children('.squirtle-quality-text-c').children('.squirtle-quality-text').text().includes('4K')
                 })
                 qualityValue.eq(0).click()
+                console.log('播放页调整：VIP最高画质（不包含4K）切换成功')
               }
             }
           }
@@ -397,9 +401,10 @@ $(function () {
           if (player_type === 'video') {
             if (utils.exist('#playerWrap #bilibili-player')) {
               const selectVipItemLength = $(
-                '.bui-select-list-wrap > ul > li'
+                '.bpx-player-ctrl-quality > ul > li'
               ).children('.bilibili-player-bigvip').length
-              $('.bui-select-list-wrap > ul > li').eq(selectVipItemLength).click()
+              $('.bpx-player-ctrl-quality > ul > li').eq(selectVipItemLength).click()
+              console.log('播放页调整：非VIP最高画质切换成功')
             }
           }
           if (player_type === 'bangumi') {
@@ -410,6 +415,7 @@ $(function () {
               $('.squirtle-quality-wrap >.squirtle-video-quality > ul > li')
                 .eq(selectVipItemLength)
                 .click()
+              console.log('播放页调整：非VIP最高画质切换成功')
             }
           }
         }
@@ -674,36 +680,36 @@ $(function () {
       const player_type = utils.getValue('player_type')
       if (player_type === 'video') {
         const muteObserver = setInterval(() => {
-          const cancelMuteButtn = $('[aria-label="取消静音"]')
+          const cancelMuteButtn = $('.bpx-player-ctrl-muted-icon')
           const cancelMuteButtnDisplay = cancelMuteButtn.css('display')
-          if (cancelMuteButtnDisplay === 'inline') {
+          if (cancelMuteButtnDisplay === 'block') {
             cancelMuteButtn.click()
-            console.log('播放页调整：','BiliBili播放页调整：已自动取消静音');
+            console.log('播放页调整：已自动取消静音');
           }
           if (cancelMuteButtnDisplay === 'none') {
             clearInterval(muteObserver)
           }
-        }, 1500)
+        }, 1000)
       }
       if (player_type === 'bangumi') {
         const muteObserver = setInterval(() => {
-          const cancelMuteButtn = $('.squirtle-volume-mute-state')
-          const cancelMuteButtnDisplay = cancelMuteButtn.css('display')
-          if (cancelMuteButtnDisplay === 'inline') {
+          const cancelMuteButtn = $('.squirtle-volume-wrap .squirtle-volume .squirtle-volume-icon')
+          const cancelMuteButtnClass = cancelMuteButtn.attr('class')
+          if (cancelMuteButtnClass.includes('squirtle-volume-mute-state')) {
             cancelMuteButtn.click()
-            console.log('播放页调整：','BiliBili播放页调整：已自动取消静音');
+            console.log('播放页调整：已自动取消静音');
           }
-          if (cancelMuteButtnDisplay === 'none') {
+          if (cancelMuteButtnClass.includes('squirtle-volume-active-state')) {
             clearInterval(muteObserver)
           }
-        }, 1500)
+        }, 1000)
       }
     },
     playerLoadStateWatcher () {
       const player_type = utils.getValue('player_type')
       if (player_type === 'video') {
         if (utils.exist('#playerWrap #bilibili-player')) {
-          const playerLoadStateWatcher1 = setInterval(function () {
+          const playerLoadStateWatcher1 = setInterval(() => {
             const playerVideoBtnQualityClass = $('.bilibili-player-video-btn-quality').attr('class') || 'NULL'
             // console.log('播放页调整：',playerVideoBtnQualityClass);
             if (playerVideoBtnQualityClass.includes('disabled')) {
@@ -711,8 +717,8 @@ $(function () {
             } else {
               // clearInterval(playerLoadStateWatcher1)
             }
-          }, 1500)
-          const playerLoadStateWatcher2 = setInterval(function () {
+          }, 1000)
+          const playerLoadStateWatcher2 = setInterval(() => {
             const playerVideoLength = $('.bpx-player-video-wrap').children().length
             // console.log('播放页调整：',playerVideoLength);
             if (playerVideoLength === 0) {
@@ -720,12 +726,12 @@ $(function () {
             } else {
               clearInterval(playerLoadStateWatcher2)
             }
-          }, 1500)
+          }, 1000)
         }
       }
       if (player_type === 'bangumi') {
         if (utils.exist('#player_module #bilibili-player')) {
-          // const playerLoadStateWatcher1 = setInterval(function () {
+          // const playerLoadStateWatcher1 = setInterval(() => {
           //   const playerVideoBtnQualityClass = $('.bilibili-player-video-btn-quality').attr('class') || 'NULL'
           //   // console.log('播放页调整：',playerVideoBtnQualityClass);
           //   if (playerVideoBtnQualityClass.includes('disabled')) {
@@ -734,7 +740,7 @@ $(function () {
           //     // clearInterval(playerLoadStateWatcher1)
           //   }
           // }, 1000)
-          const playerLoadStateWatcher2 = setInterval(function () {
+          const playerLoadStateWatcher2 = setInterval(() => {
             const playerVideoLength = $('.bpx-player-video-wrap').children().length
             // console.log('播放页调整：',playerVideoLength);
             if (playerVideoLength === 0) {
