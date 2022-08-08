@@ -2,7 +2,7 @@
 // @name              哔哩哔哩（bilibili.com）播放页调整
 // @license           GPL-3.0 License
 // @namespace         https://greasyfork.org/zh-CN/scripts/415804-bilibili%E6%92%AD%E6%94%BE%E9%A1%B5%E8%B0%83%E6%95%B4-%E8%87%AA%E7%94%A8
-// @version           0.7.7
+// @version           0.7.8
 // @description       1.自动定位到播放器（进入播放页，可自动定位到播放器，可设置偏移量及是否在点击主播放器时定位）；2.可设置是否自动选择最高画质；3.可设置播放器默认模式；
 // @author            QIAN
 // @match             *://*.bilibili.com/video/*
@@ -576,73 +576,80 @@ $(function () {
       headObserver.observe(document.head, { childList: true, subtree: true })
     },
     applySetting () {
-      console.log(
-        ' ' + GM.info.script.name,
-        '\n',
-        '脚本作者：' + GM.info.script.author,
-        '\n',
-        '-----------------',
-        '\n',
-        'player_type: ' + utils.getValue('player_type'),
-        '\n',
-        'offset_top: ' + utils.getValue('offset_top'),
-        '\n',
-        'player_offset_top: ' + utils.getValue('player_offset_top'),
-        '\n',
-        'is_vip: ' + utils.getValue('is_vip'),
-        '\n',
-        'click_player_auto_locate: ' +
-        utils.getValue('click_player_auto_locate'),
-        '\n',
-        'current_screen_mod: ' + utils.getValue('current_screen_mod'),
-        '\n',
-        'selected_screen_mod: ' + utils.getValue('selected_screen_mod'),
-        '\n',
-        'auto_select_video_highest_quality: ' +
-        utils.getValue('auto_select_video_highest_quality')
-      )
-      let applyed = false
-      const applyChanges = setInterval(async () => {
-        await utils.sleep(2000);
-        const player_type = utils.getValue('player_type')
-        const selected_screen_mod = utils.getValue('selected_screen_mod')
-        if (player_type === 'video') {
-          if (utils.exist('#playerWrap #bilibili-player')) {
-            // const playerClass = $('#bilibili-player').attr('class')
-            if (utils.exist('.bpx-player-control-bottom')) {    
-              if(!applyed){
-                main.insertLocateButton()
-                main.autoSelectScreenMod()
-                main.autoLocation()
-                main.autoSelectVideoHightestQuality()
-                applyed = true
-              }else{
-                $("#viewbox_report").attr("style","height:106px!important")
-                $(".wide-members").attr("style","height: 99px; overflow: hidden; padding: 10px; box-sizing: border-box;margin-top: -18px;")
-                clearInterval(applyChanges)
+      const checkDocumentHidden = setInterval(async () => {
+        if(await !utils.documentHidden()){
+          clearInterval(checkDocumentHidden)
+          console.log(
+            ' ' + GM.info.script.name,
+            '\n',
+            '脚本作者：' + GM.info.script.author,
+            '\n',
+            '-----------------',
+            '\n',
+            'player_type: ' + utils.getValue('player_type'),
+            '\n',
+            'offset_top: ' + utils.getValue('offset_top'),
+            '\n',
+            'player_offset_top: ' + utils.getValue('player_offset_top'),
+            '\n',
+            'is_vip: ' + utils.getValue('is_vip'),
+            '\n',
+            'click_player_auto_locate: ' +
+            utils.getValue('click_player_auto_locate'),
+            '\n',
+            'current_screen_mod: ' + utils.getValue('current_screen_mod'),
+            '\n',
+            'selected_screen_mod: ' + utils.getValue('selected_screen_mod'),
+            '\n',
+            'auto_select_video_highest_quality: ' +
+            utils.getValue('auto_select_video_highest_quality')
+          )
+          let applyed = false
+          const applyChanges = setInterval(async () => {
+            await utils.sleep(2000);
+            const player_type = utils.getValue('player_type')
+            const selected_screen_mod = utils.getValue('selected_screen_mod')
+            if (player_type === 'video') {
+              if (utils.exist('#playerWrap #bilibili-player')) {
+                // const playerClass = $('#bilibili-player').attr('class')
+                if (utils.exist('.bpx-player-control-bottom')) {    
+                  if(!applyed){
+                    main.insertLocateButton()
+                    main.autoSelectScreenMod()
+                    main.autoSelectVideoHightestQuality()
+                    main.autoLocation()
+                    applyed = true
+                  }else{
+                    $("#viewbox_report").attr("style","height:106px!important")
+                    $(".wide-members").attr("style","height: 99px; overflow: hidden; padding: 10px; box-sizing: border-box;margin-top: -18px;")
+                    clearInterval(applyChanges)
+                  }
+                }
               }
             }
-          }
-        }
-        if (player_type === 'bangumi') {
-          if (utils.exist('#player_module #bilibili-player')) {
-            const playerDataScreen = $(
-              '#bilibili-player .bpx-player-container'
-            ).attr('data-screen')
-            if (utils.exist('.squirtle-controller-wrap')) {   
-              if(!applyed){
-                main.insertLocateButton()
-                main.autoSelectScreenMod()
-                main.autoLocation()
-                main.autoSelectVideoHightestQuality()
-                applyed = true
-              }else{
-                clearInterval(applyChanges)
+            if (player_type === 'bangumi') {
+              if (utils.exist('#player_module #bilibili-player')) {
+                const playerDataScreen = $(
+                  '#bilibili-player .bpx-player-container'
+                ).attr('data-screen')
+                if (utils.exist('.squirtle-controller-wrap')) {   
+                  if(!applyed){
+                    main.insertLocateButton()
+                    main.autoSelectScreenMod()
+                    main.autoLocation()
+                    main.autoSelectVideoHightestQuality()
+                    applyed = true
+                  }else{
+                    clearInterval(applyChanges)
+                  }
+                }
               }
             }
-          }
+          }, 1000)
+        } else {
+          console.log("播放页调整：当前标签未激活，正在重试")
         }
-      }, 1000)
+      },500)
     },
     insertLocateButton () {
       const player_type = utils.getValue('player_type')
@@ -761,8 +768,6 @@ $(function () {
       this.addPluginStyle()
       this.playerLoadStateWatcher()
       this.getCurrentPlayerTypeAndScreenMod()
-      // this.autoLocation()
-      // this.autoSelectScreenMod()
       this.applySetting()
       this.playerLoadStateWatcher()
       this.autoCancelMute()
