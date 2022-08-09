@@ -2,7 +2,7 @@
 // @name              哔哩哔哩（bilibili.com）播放页调整
 // @license           GPL-3.0 License
 // @namespace         https://greasyfork.org/zh-CN/scripts/415804-bilibili%E6%92%AD%E6%94%BE%E9%A1%B5%E8%B0%83%E6%95%B4-%E8%87%AA%E7%94%A8
-// @version           0.7.8
+// @version           0.7.9
 // @description       1.自动定位到播放器（进入播放页，可自动定位到播放器，可设置偏移量及是否在点击主播放器时定位）；2.可设置是否自动选择最高画质；3.可设置播放器默认模式；
 // @author            QIAN
 // @match             *://*.bilibili.com/video/*
@@ -381,7 +381,7 @@ $(function () {
             if (player_type === 'video') {
               if (utils.exist('#playerWrap #bilibili-player')) {
                 const qualityValue = $('.bpx-player-ctrl-quality > ul > li').filter(function () {
-                  return !$(this).children('span.bilibili-player-video-quality-text').text().includes('4K')
+                  return !$(this).children('span.bpx-player-ctrl-quality-text').text().includes('4K')
                 })
                 qualityValue.eq(0).click()
                 console.log('播放页调整：VIP最高画质（不包含4K）切换成功')
