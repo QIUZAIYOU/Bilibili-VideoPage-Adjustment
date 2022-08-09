@@ -2,7 +2,7 @@
 // @name              哔哩哔哩（bilibili.com）播放页调整
 // @license           GPL-3.0 License
 // @namespace         https://greasyfork.org/zh-CN/scripts/415804-bilibili%E6%92%AD%E6%94%BE%E9%A1%B5%E8%B0%83%E6%95%B4-%E8%87%AA%E7%94%A8
-// @version           0.7.9
+// @version           0.8.0
 // @description       1.自动定位到播放器（进入播放页，可自动定位到播放器，可设置偏移量及是否在点击主播放器时定位）；2.可设置是否自动选择最高画质；3.可设置播放器默认模式；
 // @author            QIAN
 // @match             *://*.bilibili.com/video/*
@@ -716,44 +716,27 @@ $(function () {
       const player_type = utils.getValue('player_type')
       if (player_type === 'video') {
         if (utils.exist('#playerWrap #bilibili-player')) {
-          const playerLoadStateWatcher1 = setInterval(() => {
-            const playerVideoBtnQualityClass = $('.bilibili-player-video-btn-quality').attr('class') || 'NULL'
-            // console.log('播放页调整：',playerVideoBtnQualityClass);
-            if (playerVideoBtnQualityClass.includes('disabled')) {
-              location.reload(true)
-            } else {
-              // clearInterval(playerLoadStateWatcher1)
-            }
-          }, 1000)
-          const playerLoadStateWatcher2 = setInterval(() => {
+          const playerLoadStateWatcher = setInterval(() => {
             const playerVideoLength = $('.bpx-player-video-wrap').children().length
             // console.log('播放页调整：',playerVideoLength);
             if (playerVideoLength === 0) {
               location.reload(true)
             } else {
-              clearInterval(playerLoadStateWatcher2)
+              clearInterval(playerLoadStateWatcher)
+              // console.log('播放页调整：获取到播放器，开始应用设置');
             }
           }, 1000)
         }
       }
       if (player_type === 'bangumi') {
         if (utils.exist('#player_module #bilibili-player')) {
-          // const playerLoadStateWatcher1 = setInterval(() => {
-          //   const playerVideoBtnQualityClass = $('.bilibili-player-video-btn-quality').attr('class') || 'NULL'
-          //   // console.log('播放页调整：',playerVideoBtnQualityClass);
-          //   if (playerVideoBtnQualityClass.includes('disabled')) {
-          //     location.reload(true)
-          //   } else {
-          //     // clearInterval(playerLoadStateWatcher1)
-          //   }
-          // }, 1000)
-          const playerLoadStateWatcher2 = setInterval(() => {
+          const playerLoadStateWatcher = setInterval(() => {
             const playerVideoLength = $('.bpx-player-video-wrap').children().length
             // console.log('播放页调整：',playerVideoLength);
             if (playerVideoLength === 0) {
-              // location.reload(true)
+              location.reload(true)
             } else {
-              clearInterval(playerLoadStateWatcher2)
+              clearInterval(playerLoadStateWatcher)
             }
           }, 1500)
         }
@@ -763,17 +746,18 @@ $(function () {
       return window.self === window.top
     },
     init () {
-      $('body').css('overflow', 'hidden')
-      this.initValue()
-      this.addPluginStyle()
+      $("body").css("overflow", "hidden");
+      this.initValue();
+      this.addPluginStyle();
       this.playerLoadStateWatcher()
-      this.getCurrentPlayerTypeAndScreenMod()
-      this.applySetting()
-      this.playerLoadStateWatcher()
-      this.autoCancelMute()
-      this.isTopWindow() && this.registerMenuCommand()
-      window.history.pushState = function () {
-        main.applySetting()
+      this.getCurrentPlayerTypeAndScreenMod();
+      this.applySetting();
+      this.playerLoadStateWatcher();
+      this.autoCancelMute();       
+      this.isTopWindow() && this.registerMenuCommand();
+      window.history.pushState = () => {
+        console.log("播放页调整：当前页面链接发生变化，重新应用定位设置");
+        main.autoLocation()
       }
     }
   }
