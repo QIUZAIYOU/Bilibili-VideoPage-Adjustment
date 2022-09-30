@@ -2,7 +2,7 @@
 // @name              哔哩哔哩（bilibili.com）播放页调整
 // @license           GPL-3.0 License
 // @namespace         https://greasyfork.org/zh-CN/scripts/415804-bilibili%E6%92%AD%E6%94%BE%E9%A1%B5%E8%B0%83%E6%95%B4-%E8%87%AA%E7%94%A8
-// @version           0.9.0
+// @version           0.9.1
 // @description       1.自动定位到播放器（进入播放页，可自动定位到播放器，可设置偏移量及是否在点击主播放器时定位）；2.可设置是否自动选择最高画质；3.可设置播放器默认模式；
 // @author            QIAN
 // @match             *://*.bilibili.com/video/*
@@ -75,6 +75,15 @@ $(function() {
                     }
                 }, _interval);
             });
+        },
+        getClientHeight() {
+            var clientHeight = 0;
+            if (document.body.clientHeight && document.documentElement.clientHeight) {
+                var clientHeight = document.body.clientHeight < document.documentElement.clientHeight ? document.body.clientHeight : document.documentElement.clientHeight;
+            } else {
+                var clientHeight = document.body.clientHeight > document.documentElement.clientHeight ? document.body.clientHeight : document.documentElement.clientHeight;
+            }
+            return clientHeight;
         },
         historyListener() {
             class Dep {
@@ -189,6 +198,9 @@ $(function() {
             }, {
                 name: "contain_quality_4k",
                 value: false
+            }, {
+                name: "webfull_unlock",
+                value: false
             } ];
             value.forEach(v => {
                 if (utils.getValue(v.name) === undefined) {
@@ -230,7 +242,7 @@ $(function() {
         },
         showInformation() {
             console.group(GM.info.script.name);
-            console.log(" author：" + GM.info.script.author, "\n", "player_type: " + utils.getValue("player_type"), "\n", "offset_top: " + utils.getValue("offset_top"), "\n", "player_offset_top: " + utils.getValue("player_offset_top"), "\n", "is_vip: " + utils.getValue("is_vip"), "\n", "click_player_auto_locate: " + utils.getValue("click_player_auto_locate"), "\n", "current_screen_mod: " + utils.getValue("current_screen_mod"), "\n", "selected_screen_mod: " + utils.getValue("selected_screen_mod"), "\n", "auto_select_video_highest_quality: " + utils.getValue("auto_select_video_highest_quality"));
+            console.log(" author：" + GM.info.script.author, "\n", "player_type: " + utils.getValue("player_type"), "\n", "offset_top: " + utils.getValue("offset_top"), "\n", "player_offset_top: " + utils.getValue("player_offset_top"), "\n", "is_vip: " + utils.getValue("is_vip"), "\n", "click_player_auto_locate: " + utils.getValue("click_player_auto_locate"), "\n", "current_screen_mod: " + utils.getValue("current_screen_mod"), "\n", "selected_screen_mod: " + utils.getValue("selected_screen_mod"), "\n", "auto_select_video_highest_quality: " + utils.getValue("auto_select_video_highest_quality"), "\n", "webfull_unlock: " + utils.getValue("webfull_unlock"));
             console.groupEnd(GM.info.script.name);
         },
         autoSelectScreenMod() {
@@ -310,7 +322,7 @@ $(function() {
                                     }
                                     if (selected_screen_mod === "web" && current_screen_mod !== "web" && playerDataScreen !== "web") {
                                         $(".bpx-player-ctrl-web-enter").click();
-                                        utils.waitSameValue(playerSelecter, "data-screen", "web", 100, 10).then(() => {
+                                        utils.waitSameValue(playerSelecter, "data-screen", "web", 100, 10).then(async () => {
                                             playerDataScreen = $(playerSelecter).attr("data-screen");
                                             if (selected_screen_mod === playerDataScreen) {
                                                 console.log("播放页调整：网页全屏切换成功，停止监控");
@@ -319,6 +331,22 @@ $(function() {
                                                 main.autoSelectVideoHightestQuality();
                                                 main.autoCancelMute();
                                                 main.insertLocateButton();
+                                                const webfull_unlock = utils.getValue("webfull_unlock");
+                                                if (webfull_unlock) {
+                                                    await utils.sleep(2e3);
+                                                    const clientHeight = utils.getClientHeight();
+                                                    $("body.webscreen-fix").css({
+                                                        "padding-top": clientHeight,
+                                                        position: "unset"
+                                                    });
+                                                    $("#bilibili-player.mode-webscreen").css({
+                                                        height: clientHeight,
+                                                        position: "absolute"
+                                                    });
+                                                    $("#app").prepend($("#bilibili-player.mode-webscreen"));
+                                                    $("#playerWrap").remove();
+                                                    console.log("播放页调整：网页全屏解锁成功");
+                                                }
                                             }
                                         }).catch(() => {
                                             console.log("播放页调整：网页全屏切换失败，尝试重试");
@@ -400,7 +428,7 @@ $(function() {
                                     }
                                     if (selected_screen_mod === "web" && current_screen_mod !== "web" && playerDataScreen !== "web") {
                                         $(".squirtle-pagefullscreen-inactive").click();
-                                        utils.waitSameValue(playerSelecter, "data-screen", "web", 100, 10).then(() => {
+                                        utils.waitSameValue(playerSelecter, "data-screen", "web", 100, 10).then(async () => {
                                             playerDataScreen = $(playerSelecter).attr("data-screen");
                                             if (selected_screen_mod === playerDataScreen) {
                                                 console.log("播放页调整：网页全屏切换成功，停止监控");
@@ -409,6 +437,22 @@ $(function() {
                                                 main.autoSelectVideoHightestQuality();
                                                 main.autoCancelMute();
                                                 main.insertLocateButton();
+                                                // const webfull_unlock = utils.getValue("webfull_unlock");
+                                                // if (webfull_unlock) {
+                                                //     await utils.sleep(2e3);
+                                                //     const clientHeight = utils.getClientHeight();
+                                                //     $("body.player-fullscreen-fix").css({
+                                                //         "padding-top": clientHeight,
+                                                //         position: "unset"
+                                                //     });
+                                                //     $("#bilibili-player.full-screen").css({
+                                                //         height: clientHeight,
+                                                //         position: "absolute"
+                                                //     });
+                                                //     $("#app").prepend($("#bilibili-player.full-screen"));
+                                                //     $("#player_module").remove();
+                                                //     console.log("播放页调整：网页全屏解锁成功");
+                                                // }
                                             }
                                         }).catch(() => {
                                             console.log("播放页调整：网页全屏切换失败，尝试重试");
@@ -532,11 +576,10 @@ $(function() {
             }
         },
         autoLocation() {
-            // console.count("播放页调整：自动定位执行次数");
-            const playerDataScreen = $(".bpx-player-container").attr("data-screen");
-            if (playerDataScreen !== "web") {
+            const selected_screen_mod = utils.getValue("selected_screen_mod");
+            const click_player_auto_locate = utils.getValue("click_player_auto_locate");
+            if (selected_screen_mod !== "web") {
                 const offset_top = utils.getValue("offset_top");
-                const click_player_auto_locate = utils.getValue("click_player_auto_locate");
                 const player_type = utils.getValue("player_type");
                 let player_offset_top;
                 if (player_type === "video") {
@@ -565,7 +608,12 @@ $(function() {
                     });
                 }
             } else {
-                return false;
+                $("html,body").scrollTop(0);
+                if (click_player_auto_locate) {
+                    $("#bilibili-player").on("click", function() {
+                        $("html,body").scrollTop(0);
+                    });
+                }
             }
         },
         fixStyle() {
@@ -576,6 +624,7 @@ $(function() {
         },
         insertLocateButton() {
             const player_type = utils.getValue("player_type");
+            const playerDataScreen = $(".bpx-player-container").attr("data-screen");
             if (player_type === "video") {
                 const locateButtonHtml = `<div class="item locate" title="定位至播放器">\n        <svg t="1643419779790" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1775" width="200" height="200" style="width: 50%;height: 100%;fill: currentColor;"><path d="M512 352c-88.008 0-160.002 72-160.002 160 0 88.008 71.994 160 160.002 160 88.01 0 159.998-71.992 159.998-160 0-88-71.988-160-159.998-160z m381.876 117.334c-19.21-177.062-162.148-320-339.21-339.198V64h-85.332v66.134c-177.062 19.198-320 162.136-339.208 339.198H64v85.334h66.124c19.208 177.062 162.144 320 339.208 339.208V960h85.332v-66.124c177.062-19.208 320-162.146 339.21-339.208H960v-85.334h-66.124zM512 810.666c-164.274 0-298.668-134.396-298.668-298.666 0-164.272 134.394-298.666 298.668-298.666 164.27 0 298.664 134.396 298.664 298.666S676.27 810.666 512 810.666z" p-id="1776"></path></svg></div>`;
                 const floatNav = $(".float-nav-exp .nav-menu");
@@ -586,7 +635,11 @@ $(function() {
                 floatNav.prepend(locateButtonHtml);
                 locateButton.not(":first-child").remove();
                 floatNav.on("click", ".locate", function() {
-                    $("html,body").scrollTop(player_offset_top - offset_top);
+                    if (playerDataScreen !== "web") {
+                        $("html,body").scrollTop(player_offset_top - offset_top);
+                    } else {
+                        $("html,body").scrollTop(0);
+                    }
                 });
             }
             if (player_type === "bangumi") {
@@ -598,7 +651,11 @@ $(function() {
                 floatNav.prepend(locateButtonHtml);
                 locateButton.not(":first-child").remove();
                 floatNav.on("click", ".locate", function() {
-                    $("html,body").scrollTop(player_offset_top - offset_top);
+                    if (playerDataScreen !== "web") {
+                        $("html,body").scrollTop(player_offset_top - offset_top);
+                    } else {
+                        $("html,body").scrollTop(0);
+                    }
                 });
             }
         },
@@ -635,7 +692,7 @@ $(function() {
                 const playerDataScreen = $(".bpx-player-container").attr("data-screen");
                 if (selected_screen_mod === playerDataScreen) {
                     clearInterval(checkApplyedStatus);
-                    console.timeEnd("播放页调整：总用时")
+                    console.timeEnd("播放页调整：总用时");
                 } else {
                     console.log("播放页调整：配置应用失败，尝试重试");
                 }
@@ -643,7 +700,7 @@ $(function() {
         },
         registerMenuCommand() {
             GM_registerMenuCommand("设置", () => {
-                const html = `        <div id="playerAdjustment" style="font-size: 1em;">            <label class="player-adjustment-setting-label" style="padding-top:0!important;">                是否为大会员                <input type="checkbox" id="Is-Vip" ${utils.getValue("is_vip") ? "checked" : ""} class="player-adjustment-setting-checkbox"  >            </label>            <span class="player-adjustment-setting-tips"> -> 请如实勾选，否则影响自动选择清晰度</span>            <label class="player-adjustment-setting-label" id="player-adjustment-Range-Wrapper">                <span>播放器顶部偏移(px)</span>                <input id="Top-Offset" value="${utils.getValue("offset_top")}" style="padding:5px;width: 200px;border: 1px solid #cecece;">            </label>            <span class="player-adjustment-setting-tips"> -> 参考值：顶部导航栏吸顶时为 71 ，否则为 7</span>            <label class="player-adjustment-setting-label">                点击播放器时定位                <input type="checkbox" id="Click-Player-Auto-Location" ${utils.getValue("click_player_auto_locate") ? "checked" : ""}  class="player-adjustment-setting-checkbox" >            </label>            <div class="player-adjustment-setting-label"                style="display: flex;align-items: center;justify-content: space-between;">                播放器默认模式                <div style="width: 215px;display: flex;align-items: center;justify-content: space-between;">                    <label class="player-adjustment-setting-label" style="padding-top:0!important;">                        <input type="radio" name="Screen-Mod" value="normal" ${utils.getValue("selected_screen_mod") === "normal" ? "checked" : ""}>                        小屏                    </label>                    <label class="player-adjustment-setting-label" style="padding-top:0!important;">                        <input type="radio" name="Screen-Mod" value="wide" ${utils.getValue("selected_screen_mod") === "wide" ? "checked" : ""}                        >宽屏                    </label>                    <label class="player-adjustment-setting-label" style="padding-top:0!important;">                        <input type="radio" name="Screen-Mod" value="web" ${utils.getValue("selected_screen_mod") === "web" ? "checked" : ""}>                        网页全屏                    </label>                </div>            </div>            <span class="player-adjustment-setting-tips"> -> 若遇到不能自动选择播放器模式可尝试点击重置</span>            <label class="player-adjustment-setting-label">                自动选择最高画质                <input type="checkbox" id="Auto-Quality" ${utils.getValue("auto_select_video_highest_quality") ? "checked" : ""} class="player-adjustment-setting-checkbox" >            </label>            <label class="player-adjustment-setting-label 4k">                是否包含4K画质                <input type="checkbox" id="Quality-4K" ${utils.getValue("contain_quality_4k") ? "checked" : ""} class="player-adjustment-setting-checkbox" >            </label>            <span class="player-adjustment-setting-tips"> -> 网络条件好时可以启用此项，自动选择最高画质时将选择4K画质，否则选择除4K外最高画质。</span>        </div>        `;
+                const html = `        <div id="playerAdjustment" style="font-size: 1em;">            <label class="player-adjustment-setting-label" style="padding-top:0!important;">                是否为大会员                <input type="checkbox" id="Is-Vip" ${utils.getValue("is_vip") ? "checked" : ""} class="player-adjustment-setting-checkbox"  >            </label>            <span class="player-adjustment-setting-tips"> -> 请如实勾选，否则影响自动选择清晰度</span>            <label class="player-adjustment-setting-label" id="player-adjustment-Range-Wrapper">                <span>播放器顶部偏移(px)</span>                <input id="Top-Offset" value="${utils.getValue("offset_top")}" style="padding:5px;width: 200px;border: 1px solid #cecece;">            </label>            <span class="player-adjustment-setting-tips"> -> 参考值：顶部导航栏吸顶时为 71 ，否则为 7</span>            <label class="player-adjustment-setting-label">                点击播放器时定位                <input type="checkbox" id="Click-Player-Auto-Location" ${utils.getValue("click_player_auto_locate") ? "checked" : ""}  class="player-adjustment-setting-checkbox" >            </label>            <div class="player-adjustment-setting-label"                style="display: flex;align-items: center;justify-content: space-between;">                播放器默认模式                <div style="width: 215px;display: flex;align-items: center;justify-content: space-between;">                    <label class="player-adjustment-setting-label" style="padding-top:0!important;">                        <input type="radio" name="Screen-Mod" value="normal" ${utils.getValue("selected_screen_mod") === "normal" ? "checked" : ""}>                        小屏                    </label>                    <label class="player-adjustment-setting-label" style="padding-top:0!important;">                        <input type="radio" name="Screen-Mod" value="wide" ${utils.getValue("selected_screen_mod") === "wide" ? "checked" : ""}                        >宽屏                    </label>                    <label class="player-adjustment-setting-label" style="padding-top:0!important;">                        <input type="radio" name="Screen-Mod" value="web" ${utils.getValue("selected_screen_mod") === "web" ? "checked" : ""}>                        网页全屏                    </label>                </div>            </div>            <span class="player-adjustment-setting-tips"> -> 若遇到不能自动选择播放器模式可尝试点击重置</span><label class="player-adjustment-setting-label">                网页全屏模式解锁                <input type="checkbox" id="Webfull-Unlock" ${utils.getValue("webfull_unlock") ? "checked" : ""} class="player-adjustment-setting-checkbox"  >            </label>            <span class="player-adjustment-setting-tips"> -> 勾选后网页全屏模式下可以滑动滚动条查看下方评论等内容</span>            <label class="player-adjustment-setting-label">                自动选择最高画质                <input type="checkbox" id="Auto-Quality" ${utils.getValue("auto_select_video_highest_quality") ? "checked" : ""} class="player-adjustment-setting-checkbox" >            </label>            <label class="player-adjustment-setting-label 4k">                是否包含4K画质                <input type="checkbox" id="Quality-4K" ${utils.getValue("contain_quality_4k") ? "checked" : ""} class="player-adjustment-setting-checkbox" >            </label>            <span class="player-adjustment-setting-tips"> -> 网络条件好时可以启用此项，自动选择最高画质时将选择4K画质，否则选择除4K外最高画质。</span>        </div>        `;
                 Swal.fire({
                     title: "播放页调整设置",
                     html: html,
@@ -684,6 +741,9 @@ $(function() {
                 });
                 $('input[name="Screen-Mod"]').click(function() {
                     utils.setValue("selected_screen_mod", $(this).val());
+                });
+                $("#Webfull-Unlock").change(e => {
+                    utils.setValue("webfull_unlock", e.target.checked);
                 });
             });
         },
