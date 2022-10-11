@@ -2,7 +2,7 @@
 // @name              哔哩哔哩（bilibili.com）播放页调整
 // @license           GPL-3.0 License
 // @namespace         https://greasyfork.org/zh-CN/scripts/415804-bilibili%E6%92%AD%E6%94%BE%E9%A1%B5%E8%B0%83%E6%95%B4-%E8%87%AA%E7%94%A8
-// @version           0.9.2
+// @version           0.9.5
 // @description       1.自动定位到播放器（进入播放页，可自动定位到播放器，可设置偏移量及是否在点击主播放器时定位）；2.可设置是否自动选择最高画质；3.可设置播放器默认模式；
 // @author            QIAN
 // @match             *://*.bilibili.com/video/*
@@ -344,9 +344,75 @@ $(function() {
                                                         position: "absolute"
                                                     });
                                                     $("#app").prepend($("#bilibili-player.mode-webscreen"));
-                                                    $("#playerWrap").remove();
+                                                    $("#playerWrap").css("display", "none");
                                                     console.log("播放页调整：网页全屏解锁成功");
+                                                    $(".bpx-player-ctrl-btn-icon.bpx-player-ctrl-web-leave").click(function() {
+                                                        $("body").css({
+                                                            "padding-top": 0,
+                                                            position: "auto"
+                                                        });
+                                                        $("#playerWrap").css("display", "block");
+                                                        const playerWrapHeight = $("#playerWrap").height();
+                                                        $("#bilibili-player").css({
+                                                            height: playerWrapHeight,
+                                                            position: "unset"
+                                                        });
+                                                        $("#playerWrap").append($("#bilibili-player.mode-webscreen"));
+                                                        utils.setValue("selected_screen_mod", "wide");
+                                                        main.autoLocation();
+                                                        utils.setValue("selected_screen_mod", "web");
+                                                    });
+                                                    $(".bpx-player-ctrl-btn-icon.bpx-player-ctrl-web-enter").click(function() {
+                                                        $("body").css({
+                                                            "padding-top": clientHeight,
+                                                            position: "unset"
+                                                        });
+                                                        $("#bilibili-player").css({
+                                                            height: clientHeight,
+                                                            position: "absolute"
+                                                        });
+                                                        $("#app").prepend($("#bilibili-player"));
+                                                        $("#playerWrap").css("display", "none");
+                                                        main.autoLocation();
+                                                    });
                                                 }
+                                                $(".bpx-player-ctrl-btn-icon.bpx-player-ctrl-wide-enter").click(function() {
+                                                    $("body").css({
+                                                        "padding-top": 0,
+                                                        position: "auto"
+                                                    });
+                                                    $("#playerWrap").css("display", "block");
+                                                    $("#bilibili-player").css({
+                                                        height: "auto",
+                                                        position: "unset"
+                                                    });
+                                                    $("#playerWrap").append($("#bilibili-player.mode-webscreen"));
+                                                    utils.setValue("selected_screen_mod", "wide");
+                                                    main.autoLocation();
+                                                    utils.setValue("selected_screen_mod", "web");
+                                                });
+                                                $(".bpx-player-ctrl-full .bpx-player-ctrl-btn-icon").click(function() {
+                                                    const playerFullStatusText = $(".bpx-player-tooltip-title").text();
+                                                    if (playerFullStatusText.includes("进入全屏")) {
+                                                        console.log("播放页调整：进入全屏");
+                                                    }
+                                                    if (playerFullStatusText.includes("退出全屏")) {
+                                                        console.log("播放页调整：退出全屏");
+                                                        $("body").css({
+                                                            "padding-top": 0,
+                                                            position: "auto"
+                                                        });
+                                                        $("#playerWrap").css("display", "block");
+                                                        $("#bilibili-player").css({
+                                                            height: "auto",
+                                                            position: "unset"
+                                                        });
+                                                        $("#playerWrap").append($("#bilibili-player.mode-webscreen"));
+                                                        utils.setValue("selected_screen_mod", "wide");
+                                                        main.autoLocation();
+                                                        utils.setValue("selected_screen_mod", "web");
+                                                    }
+                                                });
                                             }
                                         }).catch(() => {
                                             console.log("播放页调整：网页全屏切换失败，尝试重试");
@@ -437,22 +503,6 @@ $(function() {
                                                 main.autoSelectVideoHightestQuality();
                                                 main.autoCancelMute();
                                                 main.insertLocateButton();
-                                                // const webfull_unlock = utils.getValue("webfull_unlock");
-                                                // if (webfull_unlock) {
-                                                //     await utils.sleep(2e3);
-                                                //     const clientHeight = utils.getClientHeight();
-                                                //     $("body.player-fullscreen-fix").css({
-                                                //         "padding-top": clientHeight,
-                                                //         position: "unset"
-                                                //     });
-                                                //     $("#bilibili-player.full-screen").css({
-                                                //         height: clientHeight,
-                                                //         position: "absolute"
-                                                //     });
-                                                //     $("#app").prepend($("#bilibili-player.full-screen"));
-                                                //     $("#player_module").remove();
-                                                //     console.log("播放页调整：网页全屏解锁成功");
-                                                // }
                                             }
                                         }).catch(() => {
                                             console.log("播放页调整：网页全屏切换失败，尝试重试");
