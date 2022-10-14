@@ -2,7 +2,7 @@
 // @name              哔哩哔哩（bilibili.com）播放页调整
 // @license           GPL-3.0 License
 // @namespace         https://greasyfork.org/zh-CN/scripts/415804-bilibili%E6%92%AD%E6%94%BE%E9%A1%B5%E8%B0%83%E6%95%B4-%E8%87%AA%E7%94%A8
-// @version           0.9.6
+// @version           0.9.7
 // @description       1.自动定位到播放器（进入播放页，可自动定位到播放器，可设置偏移量及是否在点击主播放器时定位）；2.可设置是否自动选择最高画质；3.可设置播放器默认模式；
 // @author            QIAN
 // @match             *://*.bilibili.com/video/*
@@ -334,6 +334,7 @@ $(function() {
 												main.autoSelectVideoHightestQuality()
 												main.autoCancelMute()
 												main.insertLocateButton()
+												$('.float-nav-exp .mini').remove()
 												const webfull_unlock = utils.getValue('webfull_unlock')
 												if (webfull_unlock) {
 													await utils.sleep(2e3)
@@ -349,6 +350,7 @@ $(function() {
 													$('#app').prepend($('#bilibili-player.mode-webscreen'))
 													$('#playerWrap').css('display', 'none')
 													console.log('播放页调整：网页全屏解锁成功')
+													utils.setValue('current_screen_mod', 'web')
 													// 退出网页全屏
 													$('.bpx-player-ctrl-btn-icon.bpx-player-ctrl-web-leave').click(function() {
 														$('body').css({
@@ -365,9 +367,11 @@ $(function() {
 														utils.setValue('selected_screen_mod', 'wide')
 														main.autoLocation()
 														utils.setValue('selected_screen_mod', 'web')
+														utils.setValue('current_screen_mod', '1')
 													})
 													// 再次进入网页全屏
 													$('.bpx-player-ctrl-btn-icon.bpx-player-ctrl-web-enter').click(function() {
+														utils.setValue('current_screen_mod', 'web')
 														$('body').css({
 															'padding-top': clientHeight,
 															position: 'unset'
@@ -383,13 +387,15 @@ $(function() {
 												}
 												// 进入宽屏
 												$('.bpx-player-ctrl-btn-icon.bpx-player-ctrl-wide-enter').click(function() {
+													utils.setValue('current_screen_mod', 'wide')
 													$('body').css({
 														'padding-top': 0,
 														position: 'auto'
 													})
 													$('#playerWrap').css('display', 'block')
 													$('#bilibili-player').css({
-														height: 'auto',
+														width: '',
+														height: '',
 														position: 'unset'
 													})
 													$('#playerWrap').append($('#bilibili-player.mode-webscreen'))
@@ -397,11 +403,16 @@ $(function() {
 													main.autoLocation()
 													utils.setValue('selected_screen_mod', 'web')
 												})
+												// 退出宽屏
+												$('.bpx-player-ctrl-btn-icon.bpx-player-ctrl-wide-enter').click(function() {
+													utils.setValue('current_screen_mod', 'normal_1')
+												})
 												// 进入或离开全屏
 												$('.bpx-player-ctrl-full .bpx-player-ctrl-btn-icon').click(function() {
 													const playerFullStatusText = $('.bpx-player-tooltip-title').text()
 													if (playerFullStatusText.includes('进入全屏')) {
 														console.log('播放页调整：进入全屏')
+														utils.setValue('current_screen_mod', 'full')
 													}
 													if (playerFullStatusText.includes('退出全屏')) {
 														console.log('播放页调整：退出全屏')
@@ -411,15 +422,77 @@ $(function() {
 														})
 														$('#playerWrap').css('display', 'block')
 														$('#bilibili-player').css({
-															height: 'auto',
+															height: '',
 															position: 'unset'
 														})
 														$('#playerWrap').append($('#bilibili-player.mode-webscreen'))
 														utils.setValue('selected_screen_mod', 'wide')
 														main.autoLocation()
 														utils.setValue('selected_screen_mod', 'web')
+														utils.setValue('current_screen_mod', 'normal')
 													}
 												})
+												// 劫持原全屏快捷键(f)
+												$(document).keypress(function(event) {
+													if (event.keyCode === 102) {
+														const playerFullStatusText = $('.bpx-player-tooltip-title').text()
+														if (playerFullStatusText.includes('进入全屏')) {
+															console.log('播放页调整：进入全屏')
+															utils.setValue('current_screen_mod', 'full')
+														}
+														if (playerFullStatusText.includes('退出全屏')) {
+															console.log('播放页调整：退出全屏')
+															$('body').css({
+																'padding-top': 0,
+																position: 'auto'
+															})
+															$('#playerWrap').css('display', 'block')
+															$('#bilibili-player').css({
+																height: '',
+																position: 'unset'
+															})
+															$('#playerWrap').append($('#bilibili-player.mode-webscreen'))
+															utils.setValue('selected_screen_mod', 'wide')
+															main.autoLocation()
+															utils.setValue('selected_screen_mod', 'web')
+															utils.setValue('current_screen_mod', 'normal')
+														}
+													}
+												})
+												$('body').after('<div id="webMiniPlayer"></div>')
+												// $(document).scroll(function() {
+												// 	const selected_screen_mod = utils.getValue('selected_screen_mod')
+												// 	const current_screen_mod = $('#bilibili-player').attr('class')
+												// 	// console.log(`播放页调整：${selected_screen_mod},${current_screen_mod}`)
+												// 	if (selected_screen_mod === 'web' && current_screen_mod === 'mode-webscreen') {
+												// 		const playerHeight = $('#bilibili-player').height()
+												// 		const biliMainHeaderOffsetTop = $('#biliMainHeader').offset().top
+												// 		const documentScrollTop = $(this).scrollTop()
+												// 		if (documentScrollTop > playerHeight) {
+												// 			$('#bilibili-player').css({
+												// 				height: '180px',
+												// 				width: '320px',
+												// 				bottom: '80px',
+												// 				right: '100px',
+												// 				top: 'unset',
+												// 				left: 'unset',
+												// 				position: 'fixed'
+												// 			})
+												// 		}
+												// 		if (documentScrollTop < biliMainHeaderOffsetTop) {
+												// 			$('#bilibili-player').css({
+												// 				height: 'auto',
+												// 				width: 'auto',
+												// 				bottom: '0',
+												// 				right: '0',
+												// 				top: '0',
+												// 				left: '0',
+												// 				position: 'absolute',
+												// 				'z-index': 10000
+												// 			})
+												// 		}
+												// 	}
+												// })
 											}
 										}).catch(() => {
 											console.log('播放页调整：网页全屏切换失败，尝试重试')
@@ -559,7 +632,7 @@ $(function() {
 							// 同时不勾选包含4K和包含8K，自动选除这两项之外最高画质
 							if (!contain_quality_4k && !contain_quality_8k) {
 								const qualityValue = $('.bpx-player-ctrl-quality > ul > li').filter(function() {
-									return !$(this).children('span.bpx-player-ctrl-quality-text').text().includes('4K') || $(this).children('.squirtle-quality-text-c').children('.squirtle-quality-text').text().includes('8K')
+									return !$(this).children('span.bpx-player-ctrl-quality-text').text().includes('4K') && !$(this).children('span.bpx-player-ctrl-quality-text').text().includes('8K')
 								})
 								qualityValue.eq(0).click()
 								console.log('播放页调整：VIP最高画质（不包含4K及8K）切换成功')
@@ -907,3 +980,4 @@ $(function() {
 	}
 	main.init()
 })
+
