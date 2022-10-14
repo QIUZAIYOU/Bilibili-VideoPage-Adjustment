@@ -903,7 +903,7 @@ $(function() {
                   <label class="player-adjustment-setting-label"> 网页全屏模式解锁
                     <input type="checkbox" id="Webfull-Unlock" ${utils.getValue('webfull_unlock') ? 'checked' : ''} class="player-adjustment-setting-checkbox">
                   </label>
-                  <span class="player-adjustment-setting-tips"> ->*实验性功能(不稳，可能会有这样或那样的问题)：勾选后网页全屏模式下可以滑动滚动条查看下方评论等内容，2秒延迟后解锁（番剧播放页不支持）</span>
+                  <span class="player-adjustment-setting-tips"> ->*实验性功能(不稳，可能会有这样或那样的问题)：勾选后网页全屏模式下可以滑动滚动条查看下方评论等内容，2秒延迟后解锁（番剧播放页不支持）<br>->新增迷你播放器显示，不过比较简陋，只支持暂停/播放操作，有条件的建议还是直接使用浏览器自带的小窗播放功能。</span>
                   <label class="player-adjustment-setting-label"> 自动选择最高画质
                     <input type="checkbox" id="Auto-Quality" ${utils.getValue('auto_select_video_highest_quality') ? 'checked' : ''} class="player-adjustment-setting-checkbox">
                   </label>
@@ -999,4 +999,3 @@ $(function() {
 	}
 	main.init()
 })
-
