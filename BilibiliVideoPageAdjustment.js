@@ -1189,7 +1189,7 @@ $(function () {
         $("#goToComments").click(() => {
           $("html,body").animate(
             { scrollTop: $("#comment").offset().top },
-            100
+            0
           );
         });
       }
