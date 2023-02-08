@@ -2,11 +2,12 @@
 // @name              哔哩哔哩（bilibili.com）播放页调整
 // @license           GPL-3.0 License
 // @namespace         https://greasyfork.org/zh-CN/scripts/415804-bilibili%E6%92%AD%E6%94%BE%E9%A1%B5%E8%B0%83%E6%95%B4-%E8%87%AA%E7%94%A8
-// @version           0.10.0
+// @version           0.10.1
 // @description       1.自动定位到播放器（进入播放页，可自动定位到播放器，可设置偏移量及是否在点击主播放器时定位）；2.可设置是否自动选择最高画质；3.可设置播放器默认模式；
 // @author            QIAN
 // @match             *://*.bilibili.com/video/*
 // @match             *://*.bilibili.com/bangumi/play/*
+// @match             *://*.bilibili.com/list/watchlater\?*
 // @require           https://cdn.jsdelivr.net/npm/jquery@3.2.1/dist/jquery.min.js
 // @require           https://cdn.jsdelivr.net/npm/sweetalert2@11.3.6/dist/sweetalert2.all.min.js
 // @resource          swalStyle https://cdn.jsdelivr.net/npm/sweetalert2@11.3.6/dist/sweetalert2.min.css
@@ -214,7 +215,7 @@ $(function() {
 		getCurrentPlayerTypeAndScreenMod() {
 			utils.setValue('current_screen_mod', 'normal')
 			const currentUrl = window.location.href
-			if (currentUrl.includes('www.bilibili.com/video')) {
+			if (currentUrl.includes('www.bilibili.com/video')||currentUrl.includes('www.bilibili.com/list/watchlater')) {
 				utils.setValue('player_type', 'video')
 			}
 			if (currentUrl.includes('www.bilibili.com/bangumi/play')) {
