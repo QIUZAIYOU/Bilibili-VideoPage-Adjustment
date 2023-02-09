@@ -2,7 +2,7 @@
 // @name              哔哩哔哩（bilibili.com）播放页调整
 // @license           GPL-3.0 License
 // @namespace         https://greasyfork.org/zh-CN/scripts/415804-bilibili%E6%92%AD%E6%94%BE%E9%A1%B5%E8%B0%83%E6%95%B4-%E8%87%AA%E7%94%A8
-// @version           0.10.2
+// @version           0.10.3
 // @description       1.自动定位到播放器（进入播放页，可自动定位到播放器，可设置偏移量及是否在点击主播放器时定位）；2.可设置是否自动选择最高画质；3.可设置播放器默认模式；
 // @author            QIAN
 // @match             *://*.bilibili.com/video/*
@@ -24,7 +24,6 @@ $(function () {
   let globalCounts = {
     autoSelectScreenModCounts: 0,
     autoSelectVideoHightestQualityCounts: 0,
-    autoLocationCounts: 0,
     insertLocateButtonCounts: 0,
     insertGoToCommentsButtonCounts: 0,
     webfullUnlockCounts: 0,
@@ -992,14 +991,12 @@ $(function () {
       }
     },
     autoLocation() {
-      globalCounts.autoLocationCounts += 1;
       const selected_screen_mod = utils.getValue("selected_screen_mod");
       const click_player_auto_locate = utils.getValue(
         "click_player_auto_locate"
       );
       if (
-        selected_screen_mod !== "web" &&
-        globalCounts.autoLocationCounts === 1
+        selected_screen_mod !== "web"
       ) {
         const offset_top = utils.getValue("offset_top");
         const player_type = utils.getValue("player_type");
