@@ -2,7 +2,7 @@
 // @name              哔哩哔哩（bilibili.com）播放页调整
 // @license           GPL-3.0 License
 // @namespace         https://greasyfork.org/zh-CN/scripts/415804-bilibili%E6%92%AD%E6%94%BE%E9%A1%B5%E8%B0%83%E6%95%B4-%E8%87%AA%E7%94%A8
-// @version           0.10.4
+// @version           0.10.5
 // @description       1.自动定位到播放器（进入播放页，可自动定位到播放器，可设置偏移量及是否在点击主播放器时定位）；2.可设置是否自动选择最高画质；3.可设置播放器默认模式；
 // @author            QIAN
 // @match             *://*.bilibili.com/video/*
@@ -1035,21 +1035,24 @@ $(function () {
           }
         }, 100);
         if (click_player_auto_locate) {
-          $("#bilibili-player").on("click", function () {
-            $("#bilibili-player").on("click", function (event) {
-              event.stopPropagation();
-              if ($(this).attr("status") === "adjustment-mini") {
-                console.log("播放页调整：点击迷你播放器");
-              } else {
-                $("html,body").scrollTop(player_offset_top - offset_top);
-              }
-            });
+          $("#bilibili-player").on("click", function(event) {
+            event.stopPropagation();
+            if ($(this).attr("status") === "adjustment-mini") {
+              console.log("播放页调整：点击迷你播放器");
+            } else {
+              $("html,body").scrollTop(player_offset_top - offset_top);
+            }
           });
         }
-      } else {
+        $(".reply-content .video-time").unbind('click').on("click",function(event){
+          event.stopPropagation();
+          $("html,body").scrollTop(player_offset_top - offset_top);
+        })
+      }
+      if(selected_screen_mod === "web"){
         $("html,body").scrollTop(0);
         if (click_player_auto_locate) {
-          $("#bilibili-player").on("click", function (event) {
+          $("#bilibili-player").on("click", function(event) {
             event.stopPropagation();
             if ($(this).attr("status") === "adjustment-mini") {
               console.log("播放页调整：点击迷你播放器");
@@ -1058,6 +1061,10 @@ $(function () {
             }
           });
         }
+        $(".reply-content .video-time").unbind('click').on("click",function(event){
+          event.stopPropagation();
+          $("html,body").scrollTop(0);
+        })
       }
     },
     fixStyle() {
@@ -1183,11 +1190,10 @@ $(function () {
       ) {
         const goToCommentsBtnHtml = `<div class="bpx-player-ctrl-btn bpx-player-ctrl-comment" role="button" aria-label="前往评论" tabindex="0"><div id="goToComments" class="bpx-player-ctrl-btn-icon"><span class="bpx-common-svg-icon"><svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="88" height="88" preserveAspectRatio="xMidYMid meet" style="width: 100%; height: 100%; transform: translate3d(0px, 0px, 0px);"><path d="M512 85.333c235.637 0 426.667 191.03 426.667 426.667S747.637 938.667 512 938.667a424.779 424.779 0 0 1-219.125-60.502A2786.56 2786.56 0 0 0 272.82 866.4l-104.405 28.48c-23.893 6.507-45.803-15.413-39.285-39.296l28.437-104.288c-11.008-18.688-18.219-31.221-21.803-37.91A424.885 424.885 0 0 1 85.333 512c0-235.637 191.03-426.667 426.667-426.667zm-102.219 549.76a32 32 0 1 0-40.917 49.216A223.179 223.179 0 0 0 512 736c52.97 0 103.19-18.485 143.104-51.67a32 32 0 1 0-40.907-49.215A159.19 159.19 0 0 1 512 672a159.19 159.19 0 0 1-102.219-36.907z" fill="#currentColor"/></svg></span></div></div>`;
         $(".bpx-player-control-bottom-right").append(goToCommentsBtnHtml);
-        $("#goToComments").click(() => {
-          $("html,body").animate(
-            { scrollTop: $("#comment").offset().top },
-            0
-          );
+        $("#goToComments").on('click',function(event){
+          event.stopPropagation()
+          $("body,html").scrollTop($("#comment").offset().top - 10)
+          console.log("播放页调整：到达评论区");
         });
       }
     },
