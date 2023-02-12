@@ -330,7 +330,7 @@ $(function () {
       console.groupEnd(GM.info.script.name);
     },
     autoSelectScreenMod() {
-      globalCounts.autoSelectScreenModCounts += 1;
+      globalCounts.autoSelectScreenModCounts++;
       const playerSelecter = ".bpx-player-container";
       const player_type = utils.getValue("player_type");
       const selected_screen_mod = utils.getValue("selected_screen_mod");
@@ -792,7 +792,7 @@ $(function () {
       }, 100);
     },
     autoSelectVideoHightestQuality() {
-      globalCounts.autoSelectVideoHightestQualityCounts += 1;
+      globalCounts.autoSelectVideoHightestQualityCounts++;
       const videoPlayerSelecter = ".bpx-player-ctrl-quality";
       const bangumiPlayerSelecter = ".squirtle-quality-wrap";
       const player_type = utils.getValue("player_type");
@@ -966,7 +966,7 @@ $(function () {
       }
     },
     autoCancelMute() {
-      globalCounts.autoCancelMuteCounts += 1;
+      globalCounts.autoCancelMuteCounts++;
       const player_type = utils.getValue("player_type");
       if (player_type === "video" && globalCounts.autoCancelMuteCounts === 1) {
         const cancelMuteButtn = $(".bpx-player-ctrl-muted-icon");
@@ -1000,15 +1000,8 @@ $(function () {
       ) {
         const offset_top = utils.getValue("offset_top");
         const player_type = utils.getValue("player_type");
-        let player_offset_top;
-        if (player_type === "video") {
-          player_offset_top = $("#playerWrap").offset().top;
-          utils.setValue("player_offset_top", player_offset_top);
-        }
-        if (player_type === "bangumi") {
-          player_offset_top = $("#player_module").offset().top;
-          utils.setValue("player_offset_top", player_offset_top);
-        }
+        const player_offset_top = $("#bilibili-player").offset().top;
+        utils.setValue("player_offset_top", player_offset_top);
         $("html,body").scrollTop(player_offset_top - offset_top);
         const checkAutoLocationStatus = setInterval(() => {
           const document_scroll_top = $(document).scrollTop();
@@ -1104,7 +1097,7 @@ $(function () {
       main.playerApplyedStatus();
     },
     insertLocateButton() {
-      globalCounts.insertLocateButtonCounts += 1;
+      globalCounts.insertLocateButtonCounts++;
       const player_type = utils.getValue("player_type");
       const playerDataScreen = $(".bpx-player-container").attr("data-screen");
       if (
@@ -1148,7 +1141,7 @@ $(function () {
       }
     },
     fixedWebfullUnlockStyle() {
-      globalCounts.webfullUnlockCounts += 1;
+      globalCounts.webfullUnlockCounts++;
       const webfull_unlock = utils.getValue("webfull_unlock");
       if (webfull_unlock && globalCounts.webfullUnlockCounts === 1) {
         const clientHeight = utils.getClientHeight();
@@ -1206,7 +1199,7 @@ $(function () {
       }
     },
     insertGoToCommentsButton() {
-      globalCounts.insertGoToCommentsButtonCounts += 1;
+      globalCounts.insertGoToCommentsButtonCounts++;
       const player_type = utils.getValue("player_type");
       const webfull_unlock = utils.getValue("webfull_unlock");
       if (
