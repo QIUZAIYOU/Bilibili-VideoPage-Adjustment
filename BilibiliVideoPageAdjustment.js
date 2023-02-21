@@ -2,7 +2,7 @@
 // @name              哔哩哔哩（bilibili.com）播放页调整
 // @license           GPL-3.0 License
 // @namespace         https://greasyfork.org/zh-CN/scripts/415804-bilibili%E6%92%AD%E6%94%BE%E9%A1%B5%E8%B0%83%E6%95%B4-%E8%87%AA%E7%94%A8
-// @version           0.11.2
+// @version           0.11.3
 // @description       1.自动定位到播放器（进入播放页，可自动定位到播放器，可设置偏移量及是否在点击主播放器时定位）；2.可设置是否自动选择最高画质；3.可设置播放器默认模式；
 // @author            QIAN
 // @match             *://*.bilibili.com/video/*
@@ -218,11 +218,11 @@ $(function() {
         value: true
       },
       {
-        name: "current_screen_mod",
+        name: "current_screen_mode",
         value: "normal"
       },
       {
-        name: "selected_screen_mod",
+        name: "selected_screen_mode",
         value: "wide"
       },
       {
@@ -248,7 +248,7 @@ $(function() {
       });
     },
     getCurrentPlayerTypeAndScreenMod() {
-      utils.setValue("current_screen_mod", "normal");
+      utils.setValue("current_screen_mode", "normal");
       const currentUrl = window.location.href;
       if (currentUrl.includes("www.bilibili.com/video") || currentUrl.includes("www.bilibili.com/list/watchlater")) {
         utils.setValue("player_type", "video");
@@ -262,13 +262,13 @@ $(function() {
         const screenModObserver = new MutationObserver(function(mutations) {
           mutations.forEach(function(mutation) {
             if ([null, "null", "normal"].includes(playerDataScreen)) {
-              utils.setValue("current_screen_mod", "normal");
+              utils.setValue("current_screen_mode", "normal");
             }
             if (playerDataScreen === "wide") {
-              utils.setValue("current_screen_mod", "wide");
+              utils.setValue("current_screen_mode", "wide");
             }
             if (playerDataScreen === "web") {
-              utils.setValue("current_screen_mod", "web");
+              utils.setValue("current_screen_mode", "web");
             }
           });
         });
@@ -281,15 +281,15 @@ $(function() {
     },
     showInformation() {
       console.group(GM.info.script.name);
-      console.log(" author：" + GM.info.script.author, "\n", "player_type: " + utils.getValue("player_type"), "\n", "offset_top: " + utils.getValue("offset_top"), "\n", "player_offset_top: " + utils.getValue("player_offset_top"), "\n", "is_vip: " + utils.getValue("is_vip"), "\n", "click_player_auto_locate: " + utils.getValue("click_player_auto_locate"), "\n", "current_screen_mod: " + utils.getValue("current_screen_mod"), "\n", "selected_screen_mod: " + utils.getValue("selected_screen_mod"), "\n", "auto_select_video_highest_quality: " + utils.getValue("auto_select_video_highest_quality"), "\n", "webfull_unlock: " + utils.getValue("webfull_unlock"));
+      console.log(" author：" + GM.info.script.author, "\n", "player_type: " + utils.getValue("player_type"), "\n", "offset_top: " + utils.getValue("offset_top"), "\n", "player_offset_top: " + utils.getValue("player_offset_top"), "\n", "is_vip: " + utils.getValue("is_vip"), "\n", "click_player_auto_locate: " + utils.getValue("click_player_auto_locate"), "\n", "current_screen_mode: " + utils.getValue("current_screen_mode"), "\n", "selected_screen_mode: " + utils.getValue("selected_screen_mode"), "\n", "auto_select_video_highest_quality: " + utils.getValue("auto_select_video_highest_quality"), "\n", "webfull_unlock: " + utils.getValue("webfull_unlock"));
       console.groupEnd(GM.info.script.name);
     },
     autoSelectScreenMod() {
       globalCounts.autoSelectScreenModCounts++;
       const playerSelecter = ".bpx-player-container";
       const player_type = utils.getValue("player_type");
-      const selected_screen_mod = utils.getValue("selected_screen_mod");
-      const current_screen_mod = utils.getValue("current_screen_mod");
+      const selected_screen_mode = utils.getValue("selected_screen_mode");
+      const current_screen_mode = utils.getValue("current_screen_mode");
       const checkDocumentHidden = setInterval(async () => {
         if (
           (await !utils.documentHidden()) && globalCounts.autoSelectScreenModCounts === 1) {
@@ -301,39 +301,39 @@ $(function() {
               mutations.forEach(async function(mutation) {
                 let playerDataScreen = $(playerSelecter).attr("data-screen") || null;
                 if (player_type === "video") {
-                  if (selected_screen_mod === "normal" && current_screen_mod === "normal" && playerDataScreen === "normal") {
+                  if (selected_screen_mode === "normal" && current_screen_mode === "normal" && playerDataScreen === "normal") {
                     screenModObserver.disconnect();
                     console.log("播放页调整：小屏切换成功，停止监控");
-                    utils.setValue("current_screen_mod", "normal");
+                    utils.setValue("current_screen_mode", "normal");
                     main.autoLocation();
                     main.fixStyle();
                     main.insertLocateButton();
                   }
-                  if (selected_screen_mod === "normal" && current_screen_mod !== "normal" && playerDataScreen === "wide") {
+                  if (selected_screen_mode === "normal" && current_screen_mode !== "normal" && playerDataScreen === "wide") {
                     screenModObserver.disconnect();
                     console.log("播放页调整：小屏切换成功，停止监控");
                     $(".bpx-player-ctrl-wide-leave").click();
-                    utils.setValue("current_screen_mod", "normal");
+                    utils.setValue("current_screen_mode", "normal");
                     main.autoLocation();
                     main.fixStyle();
                     main.insertLocateButton();
                   }
-                  if (selected_screen_mod === "normal" && current_screen_mod !== "normal" && playerDataScreen === "web") {
+                  if (selected_screen_mode === "normal" && current_screen_mode !== "normal" && playerDataScreen === "web") {
                     screenModObserver.disconnect();
                     console.log("播放页调整：小屏切换成功，停止监控");
                     $(".bpx-player-ctrl-web-leave").click();
-                    utils.setValue("current_screen_mod", "normal");
+                    utils.setValue("current_screen_mode", "normal");
                     main.autoLocation();
                     main.fixStyle();
                     main.insertLocateButton();
                   }
-                  if (selected_screen_mod === "wide" && current_screen_mod !== "wide" && playerDataScreen !== "wide") {
+                  if (selected_screen_mode === "wide" && current_screen_mode !== "wide" && playerDataScreen !== "wide") {
                     $(".bpx-player-ctrl-wide-enter").click();
                     utils.waitSameValue(playerSelecter, "data-screen", "wide", 100, 10).then(async () => {
                       playerDataScreen = $(playerSelecter).attr("data-screen");
-                      if (selected_screen_mod === playerDataScreen) {
+                      if (selected_screen_mode === playerDataScreen) {
                         console.log("播放页调整：宽屏切换成功，停止监控");
-                        utils.setValue("current_screen_mod", "wide");
+                        utils.setValue("current_screen_mode", "wide");
                         screenModObserver.disconnect();
                         main.autoSelectVideoHightestQuality();
                         main.autoCancelMute();
@@ -346,9 +346,9 @@ $(function() {
                       console.log("播放页调整：宽屏切换失败，尝试重试");
                       $(".bpx-player-ctrl-wide-enter").click();
                       playerDataScreen = $(playerSelecter).attr("data-screen");
-                      if (selected_screen_mod === playerDataScreen) {
+                      if (selected_screen_mode === playerDataScreen) {
                         console.log("播放页调整：宽屏切换成功，停止监控");
-                        utils.setValue("current_screen_mod", "wide");
+                        utils.setValue("current_screen_mode", "wide");
                         screenModObserver.disconnect();
                         main.autoSelectVideoHightestQuality();
                         main.autoCancelMute();
@@ -361,13 +361,13 @@ $(function() {
                       }
                     });
                   }
-                  if (selected_screen_mod === "web" && current_screen_mod !== "web" && playerDataScreen !== "web") {
+                  if (selected_screen_mode === "web" && current_screen_mode !== "web" && playerDataScreen !== "web") {
                     $(".bpx-player-ctrl-web-enter").click();
                     utils.waitSameValue(playerSelecter, "data-screen", "web", 100, 10).then(async () => {
                       playerDataScreen = $(playerSelecter).attr("data-screen");
-                      if (selected_screen_mod === playerDataScreen) {
+                      if (selected_screen_mode === playerDataScreen) {
                         console.log("播放页调整：网页全屏切换成功，停止监控");
-                        utils.setValue("current_screen_mod", "web");
+                        utils.setValue("current_screen_mode", "web");
                         screenModObserver.disconnect();
                         main.autoSelectVideoHightestQuality();
                         main.autoCancelMute();
@@ -388,9 +388,9 @@ $(function() {
                             position: "unset"
                           });
                           $("#playerWrap").append($("#bilibili-player.mode-webscreen"));
-                          utils.setValue("selected_screen_mod", "wide");
+                          utils.setValue("selected_screen_mode", "wide");
                           main.autoLocation();
-                          utils.setValue("selected_screen_mod", "web");
+                          utils.setValue("selected_screen_mode", "web");
                           $(".float-nav-exp .mini").css("display", "");
                         });
                         // 退出宽屏
@@ -402,7 +402,7 @@ $(function() {
                           const playerFullStatusText = $(".bpx-player-tooltip-title").text();
                           if (playerFullStatusText.includes("进入全屏")) {
                             console.log("播放页调整：进入全屏");
-                            utils.setValue("current_screen_mod", "full");
+                            utils.setValue("current_screen_mode", "full");
                           }
                           if (playerFullStatusText.includes("退出全屏")) {
                             console.log("播放页调整：退出全屏");
@@ -416,9 +416,9 @@ $(function() {
                               position: "unset"
                             });
                             $("#playerWrap").append($("#bilibili-player.mode-webscreen"));
-                            utils.setValue("selected_screen_mod", "wide");
+                            utils.setValue("selected_screen_mode", "wide");
                             main.autoLocation();
-                            utils.setValue("selected_screen_mod", "web");
+                            utils.setValue("selected_screen_mode", "web");
                             $(".float-nav-exp .mini").css("display", "");
                           }
                         });
@@ -428,7 +428,7 @@ $(function() {
                             const playerFullStatusText = $(".bpx-player-tooltip-title").text();
                             if (playerFullStatusText.includes("进入全屏")) {
                               console.log("播放页调整：进入全屏");
-                              utils.setValue("current_screen_mod", "full");
+                              utils.setValue("current_screen_mode", "full");
                             }
                             if (playerFullStatusText.includes("退出全屏")) {
                               console.log("播放页调整：退出全屏");
@@ -442,9 +442,9 @@ $(function() {
                                 position: "unset"
                               });
                               $("#playerWrap").append($("#bilibili-player.mode-webscreen"));
-                              utils.setValue("selected_screen_mod", "wide");
+                              utils.setValue("selected_screen_mode", "wide");
                               main.autoLocation();
-                              utils.setValue("selected_screen_mod", "web");
+                              utils.setValue("selected_screen_mode", "web");
                               $(".float-nav-exp .mini").css("display", "");
                             }
                           }
@@ -454,10 +454,10 @@ $(function() {
                         // const a = $('#bilibili-player > div[data-injector="nano"]').clone()
                         // $('#webMiniPlayer').html(a)
                         $(document).scroll(function() {
-                          const selected_screen_mod = utils.getValue("selected_screen_mod");
-                          const current_screen_mod = $("#bilibili-player").attr("class");
-                          // console.log(`播放页调整：${selected_screen_mod},${current_screen_mod}`)
-                          if (selected_screen_mod === "web" && current_screen_mod === "mode-webscreen") {
+                          const selected_screen_mode = utils.getValue("selected_screen_mode");
+                          const current_screen_mode = $("#bilibili-player").attr("class");
+                          // console.log(`播放页调整：${selected_screen_mode},${current_screen_mode}`)
+                          if (selected_screen_mode === "web" && current_screen_mode === "mode-webscreen") {
                             const playerHeight = $("#bilibili-player").height();
                             const biliMainHeaderOffsetTop = $("#biliMainHeader").offset().top;
                             const documentScrollTop = $(this).scrollTop();
@@ -493,9 +493,9 @@ $(function() {
                       console.log("播放页调整：网页全屏切换失败，尝试重试");
                       $(".bpx-player-ctrl-web-enter").click();
                       playerDataScreen = $(playerSelecter).attr("data-screen");
-                      if (selected_screen_mod === playerDataScreen) {
+                      if (selected_screen_mode === playerDataScreen) {
                         console.log("播放页调整：网页全屏切换成功，停止监控");
-                        utils.setValue("current_screen_mod", "web");
+                        utils.setValue("current_screen_mode", "web");
                         screenModObserver.disconnect();
                         main.autoSelectVideoHightestQuality();
                         main.autoCancelMute();
@@ -507,39 +507,39 @@ $(function() {
                   }
                 }
                 if (player_type === "bangumi") {
-                  if (selected_screen_mod === "normal" && current_screen_mod === "normal" && playerDataScreen === "normal") {
+                  if (selected_screen_mode === "normal" && current_screen_mode === "normal" && playerDataScreen === "normal") {
                     screenModObserver.disconnect();
                     console.log("播放页调整：小屏切换成功，停止监控");
-                    utils.setValue("current_screen_mod", "normal");
+                    utils.setValue("current_screen_mode", "normal");
                     main.autoLocation();
                     main.fixStyle();
                     main.insertLocateButton();
                   }
-                  if (selected_screen_mod === "normal" && current_screen_mod !== "normal" && playerDataScreen === "wide") {
+                  if (selected_screen_mode === "normal" && current_screen_mode !== "normal" && playerDataScreen === "wide") {
                     screenModObserver.disconnect();
                     console.log("播放页调整：小屏切换成功，停止监控");
                     $(".squirtle-wide-active").click();
-                    utils.setValue("current_screen_mod", "normal");
+                    utils.setValue("current_screen_mode", "normal");
                     main.autoLocation();
                     main.fixStyle();
                     main.insertLocateButton();
                   }
-                  if (selected_screen_mod === "normal" && current_screen_mod !== "normal" && playerDataScreen === "web") {
+                  if (selected_screen_mode === "normal" && current_screen_mode !== "normal" && playerDataScreen === "web") {
                     screenModObserver.disconnect();
                     console.log("播放页调整：小屏切换成功，停止监控");
                     $(".squirtle-pagefullscreen-active").click();
-                    utils.setValue("current_screen_mod", "normal");
+                    utils.setValue("current_screen_mode", "normal");
                     main.autoLocation();
                     main.fixStyle();
                     main.insertLocateButton();
                   }
-                  if (selected_screen_mod === "wide" && current_screen_mod !== "wide" && playerDataScreen !== "wide") {
+                  if (selected_screen_mode === "wide" && current_screen_mode !== "wide" && playerDataScreen !== "wide") {
                     $(".squirtle-widescreen-inactive").click();
                     utils.waitSameValue(playerSelecter, "data-screen", "wide", 100, 10).then(async () => {
                       playerDataScreen = $(playerSelecter).attr("data-screen");
-                      if (selected_screen_mod === playerDataScreen) {
+                      if (selected_screen_mode === playerDataScreen) {
                         console.log("播放页调整：宽屏切换成功，停止监控");
-                        utils.setValue("current_screen_mod", "wide");
+                        utils.setValue("current_screen_mode", "wide");
                         screenModObserver.disconnect();
                         main.autoSelectVideoHightestQuality();
                         main.autoCancelMute();
@@ -552,9 +552,9 @@ $(function() {
                       console.log("播放页调整：宽屏切换失败，尝试重试");
                       $(".squirtle-widescreen-inactive").click();
                       playerDataScreen = $(playerSelecter).attr("data-screen");
-                      if (selected_screen_mod === playerDataScreen) {
+                      if (selected_screen_mode === playerDataScreen) {
                         console.log("播放页调整：宽屏切换成功，停止监控");
-                        utils.setValue("current_screen_mod", "wide");
+                        utils.setValue("current_screen_mode", "wide");
                         screenModObserver.disconnect();
                         main.autoSelectVideoHightestQuality();
                         main.autoCancelMute();
@@ -567,13 +567,13 @@ $(function() {
                       }
                     });
                   }
-                  if (selected_screen_mod === "web" && current_screen_mod !== "web" && playerDataScreen !== "web") {
+                  if (selected_screen_mode === "web" && current_screen_mode !== "web" && playerDataScreen !== "web") {
                     $(".squirtle-pagefullscreen-inactive").click();
                     utils.waitSameValue(playerSelecter, "data-screen", "web", 100, 10).then(async () => {
                       playerDataScreen = $(playerSelecter).attr("data-screen");
-                      if (selected_screen_mod === playerDataScreen) {
+                      if (selected_screen_mode === playerDataScreen) {
                         console.log("播放页调整：网页全屏切换成功，停止监控");
-                        utils.setValue("current_screen_mod", "web");
+                        utils.setValue("current_screen_mode", "web");
                         screenModObserver.disconnect();
                         main.autoSelectVideoHightestQuality();
                         main.autoCancelMute();
@@ -583,9 +583,9 @@ $(function() {
                       console.log("播放页调整：网页全屏切换失败，尝试重试");
                       $(".squirtle-pagefullscreen-inactive").click();
                       playerDataScreen = $(playerSelecter).attr("data-screen");
-                      if (selected_screen_mod === playerDataScreen) {
+                      if (selected_screen_mode === playerDataScreen) {
                         console.log("播放页调整：网页全屏切换成功，停止监控");
-                        utils.setValue("current_screen_mod", "web");
+                        utils.setValue("current_screen_mode", "web");
                         screenModObserver.disconnect();
                         main.autoSelectVideoHightestQuality();
                         main.autoCancelMute();
@@ -730,9 +730,9 @@ $(function() {
       }
     },
     autoLocation() {
-      const selected_screen_mod = utils.getValue("selected_screen_mod");
+      const selected_screen_mode = utils.getValue("selected_screen_mode");
       const click_player_auto_locate = utils.getValue("click_player_auto_locate");
-      if (selected_screen_mod !== "web") {
+      if (selected_screen_mode !== "web") {
         const offset_top = utils.getValue("offset_top");
         const player_type = utils.getValue("player_type");
         const player_offset_top = $("#bilibili-player").offset().top;
@@ -760,7 +760,7 @@ $(function() {
           });
         }
       }
-      if (selected_screen_mod === "web") {
+      if (selected_screen_mode === "web") {
         $("html,body").scrollTop(0);
         if (click_player_auto_locate) {
           $("#bilibili-player").on("click", function(event) {
@@ -775,7 +775,7 @@ $(function() {
       }
     },
     jumpVideoTime() {
-      const selected_screen_mod = utils.getValue("selected_screen_mod");
+      const selected_screen_mode = utils.getValue("selected_screen_mode");
       const offset_top = utils.getValue("offset_top");
       const player_type = utils.getValue("player_type");
       let player_offset_top;
@@ -788,8 +788,8 @@ $(function() {
           const video = $('#bilibili-player video')[0]
           video.currentTime = targetTime;
           video.play();
-          if (selected_screen_mod === "web") $("html,body").scrollTop(0);
-          if (selected_screen_mod !== "web") $("html,body").scrollTop(player_offset_top - offset_top);
+          if (selected_screen_mode === "web") $("html,body").scrollTop(0);
+          if (selected_screen_mode !== "web") $("html,body").scrollTop(player_offset_top - offset_top);
           // console.log(player_offset_top - offset_top)
         })
       }
@@ -802,8 +802,8 @@ $(function() {
           const video = $('#bilibili-player video')[0]
           video.currentTime = targetTime;
           video.play();
-          if (selected_screen_mod === "web") $("html,body").scrollTop(0);
-          if (selected_screen_mod !== "web") $("html,body").scrollTop(player_offset_top - offset_top);
+          if (selected_screen_mode === "web") $("html,body").scrollTop(0);
+          if (selected_screen_mode !== "web") $("html,body").scrollTop(player_offset_top - offset_top);
           // console.log(player_offset_top - offset_top)
         })
       }
@@ -869,7 +869,7 @@ $(function() {
         $("#app").prepend($("#bilibili-player.mode-webscreen"));
         $("#playerWrap").css("display", "none");
         console.log("播放页调整：网页全屏解锁成功");
-        utils.setValue("current_screen_mod", "web");
+        utils.setValue("current_screen_mode", "web");
         main.insertGoToCommentsButton();
         // 退出网页全屏
         $(".bpx-player-ctrl-btn-icon.bpx-player-ctrl-web-leave").click(function() {
@@ -884,9 +884,9 @@ $(function() {
             position: "unset"
           });
           $("#playerWrap").append($("#bilibili-player.mode-webscreen"));
-          utils.setValue("selected_screen_mod", "wide");
+          utils.setValue("selected_screen_mode", "wide");
           main.autoLocation();
-          utils.setValue("selected_screen_mod", "web");
+          utils.setValue("selected_screen_mode", "web");
           $(".float-nav-exp .mini").css("display", "");
         });
         // 再次进入网页全屏
@@ -950,9 +950,9 @@ $(function() {
     },
     playerApplyedStatus() {
       const checkApplyedStatus = setInterval(() => {
-        const selected_screen_mod = utils.getValue("selected_screen_mod");
+        const selected_screen_mode = utils.getValue("selected_screen_mode");
         const playerDataScreen = $(".bpx-player-container").attr("data-screen");
-        if (selected_screen_mod === playerDataScreen) {
+        if (selected_screen_mode === playerDataScreen) {
           clearInterval(checkApplyedStatus);
           console.timeEnd("播放页调整：总用时");
         } else {
@@ -987,19 +987,19 @@ $(function() {
                   <div class="player-adjustment-setting-label screen-mod" style="display: flex;align-items: center;justify-content: space-between;"> 播放器默认模式 <div style="width: 215px;display: flex;align-items: center;justify-content: space-between;">
                       <label class="player-adjustment-setting-label" style="padding-top:0!important;">
                         <input type="radio" name="Screen-Mod" value="normal" ${
-                          utils.getValue("selected_screen_mod") === "normal"
+                          utils.getValue("selected_screen_mode") === "normal"
                             ? "checked"
                             : ""
                         }> 小屏 </label>
                       <label class="player-adjustment-setting-label" style="padding-top:0!important;">
                         <input type="radio" name="Screen-Mod" value="wide" ${
-                          utils.getValue("selected_screen_mod") === "wide"
+                          utils.getValue("selected_screen_mode") === "wide"
                             ? "checked"
                             : ""
                         }>宽屏 </label>
                       <label class="player-adjustment-setting-label" style="padding-top:0!important;">
                         <input type="radio" name="Screen-Mod" value="web" ${
-                          utils.getValue("selected_screen_mod") === "web"
+                          utils.getValue("selected_screen_mode") === "web"
                             ? "checked"
                             : ""
                         }> 网页全屏 </label>
@@ -1048,7 +1048,7 @@ $(function() {
           if (res.isConfirmed) {
             location.reload(true);
           } else if (res.isDenied) {
-            utils.setValue("current_screen_mod", "normal");
+            utils.setValue("current_screen_mode", "normal");
             location.reload(true);
           }
         });
@@ -1076,7 +1076,7 @@ $(function() {
           utils.setValue("contain_quality_8k", e.target.checked);
         });
         $('input[name="Screen-Mod"]').click(function() {
-          utils.setValue("selected_screen_mod", $(this).val());
+          utils.setValue("selected_screen_mode", $(this).val());
         });
         $("#Webfull-Unlock").change((e) => {
           utils.setValue("webfull_unlock", e.target.checked);
