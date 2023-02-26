@@ -2,7 +2,7 @@
 // @name              哔哩哔哩（bilibili.com）播放页调整
 // @license           GPL-3.0 License
 // @namespace         https://greasyfork.org/zh-CN/scripts/415804-bilibili%E6%92%AD%E6%94%BE%E9%A1%B5%E8%B0%83%E6%95%B4-%E8%87%AA%E7%94%A8
-// @version           0.12.5
+// @version           0.12.6
 // @description       1.自动定位到播放器（进入播放页，可自动定位到播放器，可设置偏移量及是否在点击主播放器时定位）；2.可设置是否自动选择最高画质；3.可设置播放器默认模式；
 // @author            QIAN
 // @match             *://*.bilibili.com/video/*
@@ -214,6 +214,18 @@ $(function() {
         value: false
       },
       {
+        name: "auto_locate",
+        value: true
+      },
+      {
+        name: "auto_locate_video",
+        value: true
+      },
+      {
+        name: "auto_locate_bangumi",
+        value: true
+      },
+      {
         name: "click_player_auto_locate",
         value: true
       },
@@ -281,7 +293,7 @@ $(function() {
     },
     showInformation() {
       console.group(GM.info.script.name);
-      console.log(" author：" + GM.info.script.author, "\n", "player_type: " + utils.getValue("player_type"), "\n", "offset_top: " + utils.getValue("offset_top"), "\n", "player_offset_top: " + utils.getValue("player_offset_top"), "\n", "is_vip: " + utils.getValue("is_vip"), "\n", "click_player_auto_locate: " + utils.getValue("click_player_auto_locate"), "\n", "current_screen_mode: " + utils.getValue("current_screen_mode"), "\n", "selected_screen_mode: " + utils.getValue("selected_screen_mode"), "\n", "auto_select_video_highest_quality: " + utils.getValue("auto_select_video_highest_quality"), "\n", "webfull_unlock: " + utils.getValue("webfull_unlock"));
+      console.log(" author：" + GM.info.script.author, "\n", "player_type: " + utils.getValue("player_type"), "\n", "auto_locate: " + utils.getValue("auto_locate"), "\n", "auto_locate_video: " + utils.getValue("auto_locate_video"), "\n", "auto_locate_bangumi: " + utils.getValue("auto_locate_bangumi"), "\n", "offset_top: " + utils.getValue("offset_top"), "\n", "player_offset_top: " + utils.getValue("player_offset_top"), "\n", "is_vip: " + utils.getValue("is_vip"), "\n", "click_player_auto_locate: " + utils.getValue("click_player_auto_locate"), "\n", "current_screen_mode: " + utils.getValue("current_screen_mode"), "\n", "selected_screen_mode: " + utils.getValue("selected_screen_mode"), "\n", "auto_select_video_highest_quality: " + utils.getValue("auto_select_video_highest_quality"), "\n", "webfull_unlock: " + utils.getValue("webfull_unlock"));
       console.groupEnd(GM.info.script.name);
     },
     autoSelectScreenMod() {
@@ -731,46 +743,52 @@ $(function() {
     },
     autoLocation() {
       const selected_screen_mode = utils.getValue("selected_screen_mode");
+      const player_type= utils.getValue("player_type");
       const click_player_auto_locate = utils.getValue("click_player_auto_locate");
-      if (selected_screen_mode !== "web") {
-        const offset_top = Math.trunc(utils.getValue("offset_top"));;
-        const player_type = utils.getValue("player_type");
-        const player_offset_top = Math.trunc($("#bilibili-player").offset().top);
-        utils.setValue("player_offset_top", player_offset_top);
-        $("html,body").scrollTop(player_offset_top - offset_top);
-        const checkAutoLocationStatus = setInterval(() => {
-          const document_scroll_top = $(document).scrollTop();
-          const success = document_scroll_top === player_offset_top - offset_top;
-          if (success) {
-            clearInterval(checkAutoLocationStatus);
-            console.log("播放页调整：自动定位成功");
-          } else {
-            console.log("播放页调整：自动定位失败，继续尝试", "\n", "-----------------", "\n", "当前文档顶部偏移量：" + document_scroll_top, "\n", "期望文档顶部偏移量：" + (player_offset_top - offset_top), "\n", "播放器顶部偏移量：" + player_offset_top, "\n", "设置偏移量：" + offset_top);
-            $("html,body").scrollTop(player_offset_top - offset_top);
-          }
-        }, 100);
-        if (click_player_auto_locate) {
-          $("#bilibili-player").on("click", function(event) {
-            event.stopPropagation();
-            if ($(this).attr("status") === "adjustment-mini") {
-              console.log("播放页调整：点击迷你播放器");
+      const auto_locate = utils.getValue("auto_locate");
+      const auto_locate_video = utils.getValue("auto_locate_video");
+      const auto_locate_bangumi = utils.getValue("auto_locate_bangumi");
+      if(((auto_locate&&!auto_locate_video&&!auto_locate_bangumi))||(auto_locate&&auto_locate_video&&auto_locate_bangumi)||(auto_locate&&auto_locate_video&&player_type==='video')||(auto_locate&&auto_locate_bangumi&&player_type==='bangumi')){
+        if (selected_screen_mode !== "web") {
+          const offset_top = Math.trunc(utils.getValue("offset_top"));;
+          const player_type = utils.getValue("player_type");
+          const player_offset_top = Math.trunc($("#bilibili-player").offset().top);
+          utils.setValue("player_offset_top", player_offset_top);
+          $("html,body").scrollTop(player_offset_top - offset_top);
+          const checkAutoLocationStatus = setInterval(() => {
+            const document_scroll_top = $(document).scrollTop();
+            const success = document_scroll_top === player_offset_top - offset_top;
+            if (success) {
+              clearInterval(checkAutoLocationStatus);
+              console.log("播放页调整：自动定位成功");
             } else {
+              console.log("播放页调整：自动定位失败，继续尝试", "\n", "-----------------", "\n", "当前文档顶部偏移量：" + document_scroll_top, "\n", "期望文档顶部偏移量：" + (player_offset_top - offset_top), "\n", "播放器顶部偏移量：" + player_offset_top, "\n", "设置偏移量：" + offset_top);
               $("html,body").scrollTop(player_offset_top - offset_top);
             }
-          });
+          }, 100);
+          if (click_player_auto_locate) {
+            $("#bilibili-player").on("click", function(event) {
+              event.stopPropagation();
+              if ($(this).attr("status") === "adjustment-mini") {
+                console.log("播放页调整：点击迷你播放器");
+              } else {
+                $("html,body").scrollTop(player_offset_top - offset_top);
+              }
+            });
+          }
         }
-      }
-      if (selected_screen_mode === "web") {
-        $("html,body").scrollTop(0);
-        if (click_player_auto_locate) {
-          $("#bilibili-player").on("click", function(event) {
-            event.stopPropagation();
-            if ($(this).attr("status") === "adjustment-mini") {
-              console.log("播放页调整：点击迷你播放器");
-            } else {
-              $("html,body").scrollTop(0);
-            }
-          });
+        if (selected_screen_mode === "web") {
+          $("html,body").scrollTop(0);
+          if (click_player_auto_locate) {
+            $("#bilibili-player").on("click", function(event) {
+              event.stopPropagation();
+              if ($(this).attr("status") === "adjustment-mini") {
+                console.log("播放页调整：点击迷你播放器");
+              } else {
+                $("html,body").scrollTop(0);
+              }
+            });
+          }
         }
       }
     },
@@ -966,12 +984,32 @@ $(function() {
       GM_registerMenuCommand("设置", () => {
         const html = `
                 <div id="playerAdjustment" style="font-size: 1em;">
-                  <label class="player-adjustment-setting-label" style="padding-top:0!important;"> 是否为大会员
+                  <label class="player-adjustment-setting-label" style="padding-top:0!important;"> 是否为大会员<span style="font-size:12px">(请如实勾选，否则影响自动选择清晰度)</span>
                     <input type="checkbox" id="Is-Vip" ${
                       utils.getValue("is_vip") ? "checked" : ""
                     } class="player-adjustment-setting-checkbox">
                   </label>
                   <span class="player-adjustment-setting-tips"> -> 请如实勾选，否则影响自动选择清晰度</span>
+                  <label class="player-adjustment-setting-label"> 自动定位至播放器
+                    <input type="checkbox" id="Auto-Locate" ${
+                      utils.getValue("auto_locate")
+                        ? "checked"
+                        : ""
+                    } class="player-adjustment-setting-checkbox">
+                  </label>
+                  <div class="auto-locate-sub-options">
+                    <label class="player-adjustment-setting-label video"> 普通视频(video)
+                      <input type="checkbox" id="Auto-Locate-Video" ${
+                        utils.getValue("auto_locate_video") ? "checked" : ""
+                      } class="player-adjustment-setting-checkbox">
+                    </label>
+                    <label class="player-adjustment-setting-label bangumi"> 其他视频(bangumi)
+                      <input type="checkbox" id="Auto-Locate-Bangumi" ${
+                        utils.getValue("auto_locate_bangumi") ? "checked" : ""
+                      } class="player-adjustment-setting-checkbox">
+                    </label>
+                  </div>
+                  <span class="player-adjustment-setting-tips"> -> 只有勾选自动定位至播放器，才会执行自动定位的功能；勾选自动定位至播放器后，video 和 bangumi 两者全选或全不选，默认在这两种类型视频播放页都执行；否则勾选哪种类型，就只在这种类型的播放页才执行。</span>
                   <label class="player-adjustment-setting-label" id="player-adjustment-Range-Wrapper">
                     <span>播放器顶部偏移(px)</span>
                     <input id="Top-Offset" value="${utils.getValue(
@@ -1068,6 +1106,15 @@ $(function() {
         $("#Click-Player-Auto-Location").change((e) => {
           utils.setValue("click_player_auto_locate", e.target.checked);
         });
+        $("#Auto-Locate").change((e) => {
+          utils.setValue("auto_locate", e.target.checked);
+        });
+        $("#Auto-Locate-Video").change((e) => {
+          utils.setValue("auto_locate_video", e.target.checked);
+        });
+        $("#Auto-Locate-Bangumi").change((e) => {
+          utils.setValue("auto_locate_bangumi", e.target.checked);
+        });
         $("#Auto-Quality").change((e) => {
           utils.setValue("auto_select_video_highest_quality", e.target.checked);
         });
@@ -1086,7 +1133,7 @@ $(function() {
       });
     },
     addPluginStyle() {
-      const style = `.swal2-popup{width:34em!important;padding:1.25em!important}.swal2-html-container{margin:0!important;padding:16px 5px 0!important;width:100%!important;box-sizing:border-box!important}.swal2-footer{flex-direction:column!important}.swal2-close{top:5px!important;right:3px!important}.swal2-actions{margin:7px auto 0!important}.swal2-styled.swal2-confirm{background-color:#23ade5!important}.swal2-icon.swal2-info.swal2-icon-show{display:none!important}.player-adjustment-container,.swal2-container{z-index:999999999!important}.player-adjustment-popup{font-size:14px!important}.player-adjustment-setting-label{display:flex!important;align-items:center!important;justify-content:space-between!important;padding-top:10px!important}.player-adjustment-setting-checkbox{width:16px!important;height:16px!important}.player-adjustment-setting-tips{width:100%!important;display:flex!important;align-items:center!important;padding:5px!important;margin-top:10px!important;background:#f5f5f5!important;box-sizing:border-box!important;font-size:14px;color:#666!important;border-radius:2px!important;text-align:left!important}.player-adjustment-setting-tips svg{margin-right:5px!important}label.player-adjustment-setting-label input{border:1px solid #cecece!important;background:#fff!important}label.player-adjustment-setting-label input[type=checkbox],label.player-adjustment-setting-label input[type=radio]{width:16px!important;height:16px!important}label.player-adjustment-setting-label input:checked{border-color:#1986b3!important;background:#23ade5!important}.auto-quality-sub-options{display:flex;align-items:center;padding-left:15px}.auto-quality-sub-options label.player-adjustment-setting-label.fourK{margin-right:10px}.auto-quality-sub-options .player-adjustment-setting-label input[type="checkbox"]{margin-left:5px!important}.player-adjustment-setting-label.screen-mod input{margin-right:5px!important}`;
+      const style = `#playerAdjustment{height:500px}.swal2-popup{width:34em!important;padding:1.25em!important}.swal2-html-container{margin:0!important;padding:16px 5px 0!important;width:100%!important;box-sizing:border-box!important}.swal2-footer{flex-direction:column!important}.swal2-close{top:5px!important;right:3px!important}.swal2-actions{margin:7px auto 0!important}.swal2-styled.swal2-confirm{background-color:#23ade5!important}.swal2-icon.swal2-info.swal2-icon-show{display:none!important}.player-adjustment-container,.swal2-container{z-index:999999999!important}.player-adjustment-popup{font-size:14px!important}.player-adjustment-setting-label{display:flex!important;align-items:center!important;justify-content:space-between!important;padding-top:10px!important}.player-adjustment-setting-checkbox{width:16px!important;height:16px!important}.player-adjustment-setting-tips{width:100%!important;display:flex!important;align-items:center!important;padding:5px!important;margin-top:10px!important;background:#f5f5f5!important;box-sizing:border-box!important;font-size:14px;color:#666!important;border-radius:2px!important;text-align:left!important}.player-adjustment-setting-tips svg{margin-right:5px!important}label.player-adjustment-setting-label input{border:1px solid #cecece!important;background:#fff!important}label.player-adjustment-setting-label input[type=checkbox],label.player-adjustment-setting-label input[type=radio]{width:16px!important;height:16px!important}label.player-adjustment-setting-label input:checked{border-color:#1986b3!important;background:#23ade5!important}.auto-quality-sub-options,.auto-locate-sub-options{display:flex;align-items:center;padding-left:15px}.auto-quality-sub-options label.player-adjustment-setting-label.fourK,.auto-locate-sub-options label.player-adjustment-setting-label.video{margin-right:10px}.auto-quality-sub-options .player-adjustment-setting-label input[type="checkbox"]{margin-left:5px!important}.player-adjustment-setting-label.screen-mod input{margin-right:5px!important}`;
       if (document.head) {
         utils.addStyle("swal-pub-style", "style", GM_getResourceText("swalStyle"));
         utils.addStyle("player-adjustment-style", "style", style);
