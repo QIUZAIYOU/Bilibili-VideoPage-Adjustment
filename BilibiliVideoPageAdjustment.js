@@ -976,7 +976,7 @@ $(function() {
                       "offset_top"
                     )}" style="padding:5px;width: 200px;border: 1px solid #cecece;">
                   </label>
-                  <span class="player-adjustment-setting-tips"> -> 参考值：顶部导航栏吸顶时为 71 ，否则为 7</span>
+                  <span class="player-adjustment-setting-tips"> -> 播放器距离浏览器窗口默认距离为 ${Math.trunc($('#bilibili-player').offset().top)}；请填写小于 ${Math.trunc($('#bilibili-player').offset().top)} 的正整数或 0；当值为 0 时，播放器上沿将紧贴浏览器窗口上沿、值为 ${Math.trunc($('#bilibili-player').offset().top)} 时，将保持B站默认。 </span>
                   <label class="player-adjustment-setting-label"> 点击播放器时定位
                     <input type="checkbox" id="Click-Player-Auto-Location" ${
                       utils.getValue("click_player_auto_locate")
