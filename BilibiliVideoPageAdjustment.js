@@ -2,7 +2,7 @@
 // @name              哔哩哔哩（bilibili.com）播放页调整
 // @license           GPL-3.0 License
 // @namespace         https://greasyfork.org/zh-CN/scripts/415804-bilibili%E6%92%AD%E6%94%BE%E9%A1%B5%E8%B0%83%E6%95%B4-%E8%87%AA%E7%94%A8
-// @version           0.12.4
+// @version           0.12.5
 // @description       1.自动定位到播放器（进入播放页，可自动定位到播放器，可设置偏移量及是否在点击主播放器时定位）；2.可设置是否自动选择最高画质；3.可设置播放器默认模式；
 // @author            QIAN
 // @match             *://*.bilibili.com/video/*
@@ -733,9 +733,9 @@ $(function() {
       const selected_screen_mode = utils.getValue("selected_screen_mode");
       const click_player_auto_locate = utils.getValue("click_player_auto_locate");
       if (selected_screen_mode !== "web") {
-        const offset_top = utils.getValue("offset_top");
+        const offset_top = Math.trunc(utils.getValue("offset_top"));;
         const player_type = utils.getValue("player_type");
-        const player_offset_top = $("#bilibili-player").offset().top;
+        const player_offset_top = Math.trunc($("#bilibili-player").offset().top);
         utils.setValue("player_offset_top", player_offset_top);
         $("html,body").scrollTop(player_offset_top - offset_top);
         const checkAutoLocationStatus = setInterval(() => {
@@ -776,7 +776,7 @@ $(function() {
     },
     jumpVideoTime() {
       const selected_screen_mode = utils.getValue("selected_screen_mode");
-      const offset_top = utils.getValue("offset_top");
+      const offset_top = Math.trunc(utils.getValue("offset_top"));;
       const player_type = utils.getValue("player_type");
       let player_offset_top;
       if (player_type === "video") {
@@ -810,7 +810,9 @@ $(function() {
     },
     fixStyle() {
       $("body").css("overflow", "unset");
+      $("#biliMainHeader").attr("style", "height:64px!important");
       $("#viewbox_report").attr("style", "height:106px!important");
+      $("#v_upinfo").attr("style", "height:80px!important");
       $(".wide-members").attr("style", "height: 99px; overflow: hidden; padding: 0; box-sizing: border-box;margin-top: -18px;");
       $(".wide-members-header").attr("style", "display:none;");
       main.playerApplyedStatus();
@@ -823,8 +825,8 @@ $(function() {
         const locateButtonHtml = `<div class="item locate" title="定位至播放器">\n        <svg t="1643419779790" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1775" width="200" height="200" style="width: 50%;height: 100%;fill: currentColor;"><path d="M512 352c-88.008 0-160.002 72-160.002 160 0 88.008 71.994 160 160.002 160 88.01 0 159.998-71.992 159.998-160 0-88-71.988-160-159.998-160z m381.876 117.334c-19.21-177.062-162.148-320-339.21-339.198V64h-85.332v66.134c-177.062 19.198-320 162.136-339.208 339.198H64v85.334h66.124c19.208 177.062 162.144 320 339.208 339.208V960h85.332v-66.124c177.062-19.208 320-162.146 339.21-339.208H960v-85.334h-66.124zM512 810.666c-164.274 0-298.668-134.396-298.668-298.666 0-164.272 134.394-298.666 298.668-298.666 164.27 0 298.664 134.396 298.664 298.666S676.27 810.666 512 810.666z" p-id="1776"></path></svg></div>`;
         const floatNav = $(".float-nav-exp .nav-menu");
         const locateButton = $(".float-nav-exp .nav-menu .item.locate");
-        const offset_top = utils.getValue("offset_top");
-        const player_offset_top = utils.getValue("player_offset_top");
+        const offset_top = Math.trunc(utils.getValue("offset_top"));;
+        const player_offset_top = Math.trunc(utils.getValue("player_offset_top"));
         $(".fixed-nav").css("bottom", "274px");
         floatNav.prepend(locateButtonHtml);
         locateButton.not(":first-child").remove();
@@ -840,8 +842,8 @@ $(function() {
         const locateButtonHtml = `<div class="tool-item locate" title="定位至播放器">\n        <svg t="1643419779790" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1775" width="200" height="200" style="width: 50%;height: 100%;fill: currentColor;"><path d="M512 352c-88.008 0-160.002 72-160.002 160 0 88.008 71.994 160 160.002 160 88.01 0 159.998-71.992 159.998-160 0-88-71.988-160-159.998-160z m381.876 117.334c-19.21-177.062-162.148-320-339.21-339.198V64h-85.332v66.134c-177.062 19.198-320 162.136-339.208 339.198H64v85.334h66.124c19.208 177.062 162.144 320 339.208 339.208V960h85.332v-66.124c177.062-19.208 320-162.146 339.21-339.208H960v-85.334h-66.124zM512 810.666c-164.274 0-298.668-134.396-298.668-298.666 0-164.272 134.394-298.666 298.668-298.666 164.27 0 298.664 134.396 298.664 298.666S676.27 810.666 512 810.666z" p-id="1776"></path></svg></div>`;
         const floatNav = $(".nav-tools");
         const locateButton = $(".nav-tools .tool-item.locate");
-        const offset_top = utils.getValue("offset_top");
-        const player_offset_top = utils.getValue("player_offset_top");
+        const offset_top = Math.trunc(utils.getValue("offset_top"));;
+        const player_offset_top = Math.trunc(utils.getValue("player_offset_top"));
         floatNav.prepend(locateButtonHtml);
         locateButton.not(":first-child").remove();
         floatNav.on("click", ".locate", function() {
