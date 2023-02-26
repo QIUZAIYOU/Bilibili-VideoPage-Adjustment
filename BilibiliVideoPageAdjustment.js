@@ -2,7 +2,7 @@
 // @name              哔哩哔哩（bilibili.com）播放页调整
 // @license           GPL-3.0 License
 // @namespace         https://greasyfork.org/zh-CN/scripts/415804-bilibili%E6%92%AD%E6%94%BE%E9%A1%B5%E8%B0%83%E6%95%B4-%E8%87%AA%E7%94%A8
-// @version           0.12.6
+// @version           0.12.5
 // @description       1.自动定位到播放器（进入播放页，可自动定位到播放器，可设置偏移量及是否在点击主播放器时定位）；2.可设置是否自动选择最高画质；3.可设置播放器默认模式；
 // @author            QIAN
 // @match             *://*.bilibili.com/video/*
@@ -984,7 +984,7 @@ $(function() {
       GM_registerMenuCommand("设置", () => {
         const html = `
                 <div id="playerAdjustment" style="font-size: 1em;">
-                  <label class="player-adjustment-setting-label" style="padding-top:0!important;"> 是否为大会员<span style="font-size:12px">(请如实勾选，否则影响自动选择清晰度)</span>
+                  <label class="player-adjustment-setting-label" style="padding-top:0!important;"> 是否为大会员
                     <input type="checkbox" id="Is-Vip" ${
                       utils.getValue("is_vip") ? "checked" : ""
                     } class="player-adjustment-setting-checkbox">
