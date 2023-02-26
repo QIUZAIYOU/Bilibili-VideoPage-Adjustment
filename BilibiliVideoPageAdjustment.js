@@ -2,7 +2,7 @@
 // @name              哔哩哔哩（bilibili.com）播放页调整
 // @license           GPL-3.0 License
 // @namespace         https://greasyfork.org/zh-CN/scripts/415804-bilibili%E6%92%AD%E6%94%BE%E9%A1%B5%E8%B0%83%E6%95%B4-%E8%87%AA%E7%94%A8
-// @version           0.12.3
+// @version           0.12.4
 // @description       1.自动定位到播放器（进入播放页，可自动定位到播放器，可设置偏移量及是否在点击主播放器时定位）；2.可设置是否自动选择最高画质；3.可设置播放器默认模式；
 // @author            QIAN
 // @match             *://*.bilibili.com/video/*
@@ -976,7 +976,7 @@ $(function() {
                       "offset_top"
                     )}" style="padding:5px;width: 200px;border: 1px solid #cecece;">
                   </label>
-                  <span class="player-adjustment-setting-tips"> -> 播放器距离浏览器窗口默认距离为 ${Math.trunc($('#bilibili-player').offset().top)}；请填写小于 ${Math.trunc($('#bilibili-player').offset().top)} 的正整数或 0；当值为 0 时，播放器上沿将紧贴浏览器窗口上沿、值为 ${Math.trunc($('#bilibili-player').offset().top)} 时，将保持B站默认。 </span>
+                  <span class="player-adjustment-setting-tips"> -> 当前页面播放器距离浏览器窗口默认距离为 ${Math.trunc($('#bilibili-player').offset().top)}（不同投稿类型的视频该值略有不同）；通常情况下请填写小于 170 的正整数或 0；当值为 0 时，播放器上沿将紧贴浏览器窗口上沿、值为 170 时，将保持B站默认。 </span>
                   <label class="player-adjustment-setting-label"> 点击播放器时定位
                     <input type="checkbox" id="Click-Player-Auto-Location" ${
                       utils.getValue("click_player_auto_locate")
