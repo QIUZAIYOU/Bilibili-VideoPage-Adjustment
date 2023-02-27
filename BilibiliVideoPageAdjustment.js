@@ -1171,6 +1171,4 @@ $(function() {
   };
   if(utils.isLogin()) main.init();
   else console.log("播放页调整：本脚本只能在登录状态下使用");
-
-
 });
