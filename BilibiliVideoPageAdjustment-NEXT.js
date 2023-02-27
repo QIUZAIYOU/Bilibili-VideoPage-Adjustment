@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name              哔哩哔哩（bilibili.com）播放页调整
+// @name              NEXT-哔哩哔哩（bilibili.com）播放页调整
 // @license           GPL-3.0 License
 // @namespace         https://greasyfork.org/zh-CN/scripts/415804-bilibili%E6%92%AD%E6%94%BE%E9%A1%B5%E8%B0%83%E6%95%B4-%E8%87%AA%E7%94%A8
 // @version           0.12.1
@@ -10,8 +10,8 @@
 // @match             *://*.bilibili.com/list/watchlater*
 // @run-at            document-start
 // @require           https://cdn.jsdelivr.net/npm/jquery@3.2.1/dist/jquery.min.js
-// @require           https://cdn.jsdelivr.net/npm/sweetalert2@11.3.6/dist/sweetalert2.all.min.js
-// @resource          swalStyle https://cdn.jsdelivr.net/npm/sweetalert2@11.3.6/dist/sweetalert2.min.css
+// @require           https://unpkg.com/sweetalert2@11.7.2/dist/sweetalert2.min.js
+// @resource          swalStyle https://unpkg.com/sweetalert2@11.7.2/dist/sweetalert2.min.css
 // @grant             GM_setValue
 // @grant             GM_getValue
 // @grant             GM_registerMenuCommand
@@ -24,9 +24,6 @@
 $(() => {
   const globalVariables = {
     currentUrl: window.location.href,
-    videoPlayerWrapper: $('#bilibili-player'),
-    videoPlayer: $('#bilibili-player video'),
-    videoPlayerContainer: $('#bilibili-player .bpx-player-container'),
     theMainFunctionRunningTimes: 0,
     thePrepFunctionRunningTimes: 0,
     autoSelectScreenModeTimes: 0,
@@ -107,7 +104,7 @@ $(() => {
             return function() {
               method.apply(history, arguments);
               historyDep.notify();
-              // console.log('播放页调整：访问历史｜变化')
+              // utils.logger.info("访问历史｜变化")
             };
           }
         };
@@ -122,7 +119,7 @@ $(() => {
     },
     checkBrowserHistory() {
       window.addEventListener('popstate', () => {
-        methods.autoLocation();
+        this.autoLocation();
       });
     },
     throttle(func, delay) {
@@ -147,6 +144,24 @@ $(() => {
       }
       return clientHeight;
     },
+    cookie(key) {
+      return document.cookie.replace(new RegExp(String.raw`(?:(?:^|.*;\s*)${key}\s*=\s*([^;]*).*$)|^.*$`), '$1')
+    },
+    isLogin() {
+      // utils.logger.info(`登录｜${Boolean(this.cookie('bili_jct'))}`)
+      return Boolean(this.cookie('bili_jct'))
+    },
+    logger: {
+      info(content) {
+        console.info('%c 播放页调整 ', 'color:white;background:#006aff;padding:3px 2px;border-radius:2px', content);
+      },
+      warn(content) {
+        console.warn('%c 播放页调整 ', 'color:white;background:#ff6d00;padding:3px 2px;border-radius:2px', content);
+      },
+      error(content) {
+        console.error('%c 播放页调整 ', 'color:white;background:#f33;padding:3px 2px;border-radius:2px', content);
+      }
+    }
   }
   const methods = {
     // 初始化设置参数
@@ -159,6 +174,18 @@ $(() => {
       {
         name: "offset_top",
         value: 7
+      },
+      {
+        name: "auto_locate",
+        value: true
+      },
+      {
+        name: "auto_locate_video",
+        value: true
+      },
+      {
+        name: "auto_locate_bangumi",
+        value: true
       },
       {
         name: "player_offset_top",
@@ -202,27 +229,45 @@ $(() => {
         }
       });
     },
-    // 监听视频资源是否加载完毕处于可播放状态
+    // 检查播放器是否存在
     checkVideoPlayerExists() {
       return new Promise((resolve, reject) => {
-        globalVariables['videoPlayer'].on('canplaythrough', () => {
-          // console.log('播放页调整：视频资源加载｜成功')
+        let count = 100;
+        let checkVideoPlayerExistsInterval = setInterval(() => {
+          if ($('#bilibili-player video').length > 0) {
+            clearInterval(checkVideoPlayerExistsInterval);
+            checkVideoPlayerExistsInterval = null
+            resolve(true);
+          } else if (count <= 0) {
+            clearInterval(checkVideoPlayerExistsInterval);
+            checkVideoPlayerExistsInterval = null
+            resolve(false);
+          }
+          count--;
+        }, 100)
+      })
+    },
+    // 检查视频资源是否加载完毕处于可播放状态
+    async checkVideoCanPlayThrough() {
+      return new Promise((resolve, reject) => {
+        $('#bilibili-player video').on('canplaythrough', () => {
+          // utils.logger.info("视频资源加载｜成功")
           let count = 100;
           let timer = setInterval(() => {
-            const isHidden = globalVariables['videoPlayerContainer'].attr('data-ctrl-hidden');
+            const isHidden = $('#bilibili-player .bpx-player-container').attr('data-ctrl-hidden');
             if (isHidden === 'false') {
               clearInterval(timer);
               timer = null
-              // console.log(`播放页调整：视频可播放`)
-              // console.log(`播放页调整：控制条｜出现(hidden:${isHidden})`)
+              // utils.logger.info(`视频可播放`)
+              // utils.logger.info(`控制条｜出现(hidden:${isHidden})`)
               resolve(true);
             } else if (count <= 0) {
               clearInterval(timer);
               timer = null
-              // console.log('播放页调整：控制条｜检查失败')
+              // utils.logger.error("控制条｜检查失败")
               resolve(false);
             }
-            // console.log('播放页调整：控制条｜检查中')
+            // utils.logger.info("控制条｜检查中")
             count--;
           }, 100);
         });
@@ -236,11 +281,11 @@ $(() => {
     // 获取当前屏幕模式(normal/wide/web/full)
     getCurrentScreenMode() {
       return new Promise((resolve, reject) => {
-        if (globalVariables['videoPlayerContainer']) {
-          const screenMode = globalVariables['videoPlayerContainer'].attr('data-screen')
+        if ($('#bilibili-player .bpx-player-container')) {
+          const screenMode = $('#bilibili-player .bpx-player-container').attr('data-screen')
           resolve(screenMode)
         } else {
-          reject('播放页调整：屏幕模式｜获取失败')
+          reject(false)
         }
       })
     },
@@ -248,24 +293,24 @@ $(() => {
     watchScreenModeChange() {
       const screenModObserver = new MutationObserver(function(mutations) {
         mutations.forEach(function(mutation) {
-          const playerDataScreen = globalVariables['videoPlayerContainer'].attr('data-screen')
-            utils.setValue('current_screen_mode', playerDataScreen)
+          const playerDataScreen = $('#bilibili-player .bpx-player-container').attr('data-screen')
+          utils.setValue('current_screen_mode', playerDataScreen)
         });
       });
-      screenModObserver.observe(globalVariables['videoPlayerContainer'][0], {
+      screenModObserver.observe($('#bilibili-player .bpx-player-container')[0], {
         attributes: true,
-        attributeFilter:['data-screen']
+        attributeFilter: ['data-screen']
       });
     },
     // 判断自动切换屏幕模式是否切换成功
     async checkScreenModeSuccess(expect_mode) {
       const selected_screen_mode = utils.getValue('selected_screen_mode')
-      const current_screen_mode = await methods.getCurrentScreenMode()
-      const player_data_screen = globalVariables['videoPlayerContainer'].attr('data-screen')
+      const current_screen_mode = await this.getCurrentScreenMode()
+      const player_data_screen = $('#bilibili-player .bpx-player-container').attr('data-screen')
       const equal = new Set([expect_mode, selected_screen_mode, current_screen_mode, player_data_screen]).size === 1
       return new Promise((resolve, reject) => {
         if (equal) {
-          // console.log(`播放页调整：屏幕模式｜${selected_screen_mode}｜切换成功`)
+          // utils.logger.info(`屏幕模式｜${selected_screen_mode}｜切换成功`)
           resolve(true)
         } else {
           resolve(false)
@@ -279,12 +324,12 @@ $(() => {
         const player_type = utils.getValue('player_type')
         const selected_screen_mode = utils.getValue('selected_screen_mode')
         return new Promise((resolve, reject) => {
-          const wideEnterBtn = player_type === 'video' ? $('.bpx-player-ctrl-wide-enter') : $('.squirtle-widescreen-inactive')
-          const webEnterBtn = player_type === 'video' ? $('.bpx-player-ctrl-web-enter') : $('.squirtle-pagefullscreen-inactive')
+          const wideEnterBtn = player_type === 'video' ? '.bpx-player-ctrl-wide-enter' : '.squirtle-widescreen-inactive'
+          const webEnterBtn = player_type === 'video' ? '.bpx-player-ctrl-web-enter' : '.squirtle-pagefullscreen-inactive'
           if (selected_screen_mode === 'wide') {
-            wideEnterBtn.click()
+            $(wideEnterBtn).click()
             let checkScreenModeInterval = setInterval(async () => {
-              const success = await methods.checkScreenModeSuccess('wide')
+              const success = await this.checkScreenModeSuccess('wide')
               if (success) {
                 clearInterval(checkScreenModeInterval)
                 checkScreenModeInterval = null
@@ -294,15 +339,15 @@ $(() => {
                   mode: selected_screen_mode
                 })
               } else {
-                wideEnterBtn.click()
-                console.log("播放页调整：自动选择屏幕模式失败正在重试");
+                $(wideEnterBtn).click()
+                utils.logger.warn("自动选择屏幕模式失败正在重试");
               }
             }, 100)
           }
           if (selected_screen_mode === 'web') {
-            webEnterBtn.click()
+            $(webEnterBtn).click()
             let checkScreenModeInterval = setInterval(async () => {
-              const success = await methods.checkScreenModeSuccess('web')
+              const success = await this.checkScreenModeSuccess('web')
               if (success) {
                 clearInterval(checkScreenModeInterval)
                 checkScreenModeInterval = null
@@ -312,8 +357,8 @@ $(() => {
                   mode: selected_screen_mode
                 })
               } else {
-                webEnterBtn.click()
-                console.log("播放页调整：自动选择屏幕模式失败正在重试");
+                $(webEnterBtn).click()
+                utils.logger.warn("自动选择屏幕模式失败正在重试");
               }
             }, 100)
           }
@@ -335,9 +380,9 @@ $(() => {
         });
         $("#app").prepend($("#bilibili-player.mode-webscreen"));
         $("#playerWrap").css("display", "none");
-        console.log("播放页调整：网页全屏解锁成功");
+        utils.logger.info("网页全屏解锁成功");
         utils.setValue("current_screen_mode", "web");
-        methods.insertGoToCommentsButton();
+        this.insertGoToCommentsButton();
         // 退出网页全屏
         $(".bpx-player-ctrl-btn-icon.bpx-player-ctrl-web-leave").click(function() {
           $("body").css({
@@ -352,7 +397,7 @@ $(() => {
           });
           $("#playerWrap").append($("#bilibili-player.mode-webscreen"));
           utils.setValue("selected_screen_mode", "wide");
-          methods.autoLocation();
+          this.autoLocation();
           utils.setValue("selected_screen_mode", "web");
           $(".float-nav-exp .mini").css("display", "");
         });
@@ -385,14 +430,14 @@ $(() => {
         $("#goToComments").on('click', function(event) {
           event.stopPropagation()
           $("body,html").scrollTop($("#comment").offset().top - 10)
-          console.log("播放页调整：到达评论区");
+          utils.logger.info("到达评论区");
         });
       }
     },
     // 添加返回播放器按钮
     async insertBackToPlayerButton() {
       const player_type = utils.getValue("player_type");
-      const playerDataScreen = await methods.getCurrentScreenMode()
+      const playerDataScreen = await this.getCurrentScreenMode()
       if (player_type === "video") {
         const locateButtonHtml = `<div class="item locate" title="定位至播放器">\n<svg t="1643419779790" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1775" width="200" height="200" style="width: 50%;height: 100%;fill: currentColor;"><path d="M512 352c-88.008 0-160.002 72-160.002 160 0 88.008 71.994 160 160.002 160 88.01 0 159.998-71.992 159.998-160 0-88-71.988-160-159.998-160z m381.876 117.334c-19.21-177.062-162.148-320-339.21-339.198V64h-85.332v66.134c-177.062 19.198-320 162.136-339.208 339.198H64v85.334h66.124c19.208 177.062 162.144 320 339.208 339.208V960h85.332v-66.124c177.062-19.208 320-162.146 339.21-339.208H960v-85.334h-66.124zM512 810.666c-164.274 0-298.668-134.396-298.668-298.666 0-164.272 134.394-298.666 298.668-298.666 164.27 0 298.664 134.396 298.664 298.666S676.27 810.666 512 810.666z" p-id="1776"></path></svg></div>`;
         const floatNav = $(".float-nav-exp .nav-menu");
@@ -429,46 +474,52 @@ $(() => {
     },
     // 自动定位至播放器
     autoLocation() {
+      const player_type = utils.getValue("player_type");
       const selected_screen_mode = utils.getValue("selected_screen_mode");
       const click_player_auto_locate = utils.getValue("click_player_auto_locate");
       const offset_top = Math.trunc(utils.getValue("offset_top"));
-      const player_type = utils.getValue("player_type");
-      const player_offset_top = Math.trunc(globalVariables['videoPlayerWrapper'].offset().top);
+      const auto_locate = utils.getValue("auto_locate");
+      const auto_locate_video = utils.getValue("auto_locate_video");
+      const auto_locate_bangumi = utils.getValue("auto_locate_bangumi");
+      const player_offset_top = Math.trunc($('#bilibili-player').offset().top);
       utils.setValue("player_offset_top", player_offset_top);
-      if (selected_screen_mode !== 'web') {
-        $("html,body").scrollTop(player_offset_top - offset_top);
-        return new Promise((resolve, reject) => {
-          let applyAutoLocationInterval = setInterval(() => {
-            const document_scroll_top = $(document).scrollTop();
-            console.log("播放页调整：自动定位失败，继续尝试", "\n", "-----------------", "\n", "当前文档顶部偏移量：" + document_scroll_top, "\n", "期望文档顶部偏移量：" + (player_offset_top - offset_top), "\n", "播放器顶部偏移量：" + player_offset_top, "\n", "设置偏移量：" + offset_top);
-            $("html,body").scrollTop(player_offset_top - offset_top);
-          }, 200)
-          let checkAutoLocationStatus = setInterval(() => {
-            const document_scroll_top = $(document).scrollTop();
-            const success = document_scroll_top === player_offset_top - offset_top;
-            if (success) {
-              clearInterval(checkAutoLocationStatus);
-              clearInterval(applyAutoLocationInterval);
-              checkAutoLocationStatus = null
-              applyAutoLocationInterval = null
-              // console.log("播放页调整：自动定位成功");
-              resolve(true)
-            }
-          }, 100);
-        })
-      }
+      $("html,body").scrollTop(player_offset_top - offset_top);
+      return new Promise((resolve, reject) => {
+        if (((auto_locate && !auto_locate_video && !auto_locate_bangumi)) || (auto_locate && auto_locate_video && auto_locate_bangumi) || (auto_locate && auto_locate_video && player_type === 'video') || (auto_locate && auto_locate_bangumi && player_type === 'bangumi')) {
+          if (selected_screen_mode !== 'web') {
+            let applyAutoLocationInterval = setInterval(() => {
+              const document_scroll_top = $(document).scrollTop();
+              utils.logger.warn("自动定位失败，继续尝试", "\n", "-----------------", "\n", "当前文档顶部偏移量：" + document_scroll_top, "\n", "期望文档顶部偏移量：" + (player_offset_top - offset_top), "\n", "播放器顶部偏移量：" + player_offset_top, "\n", "设置偏移量：" + offset_top);
+              $("html,body").scrollTop(player_offset_top - offset_top);
+            }, 200)
+            let checkAutoLocationStatus = setInterval(() => {
+              const document_scroll_top = $(document).scrollTop();
+              const success = document_scroll_top === player_offset_top - offset_top;
+              if (success) {
+                clearInterval(checkAutoLocationStatus);
+                clearInterval(applyAutoLocationInterval);
+                checkAutoLocationStatus = null
+                applyAutoLocationInterval = null
+                // utils.logger.info("自动定位成功");
+                resolve(true)
+              }
+            }, 100);
+          }
+        }
+        else resolve(false)
+      })
     },
     // 点击播放器自动定位至播放器
     async clickPlayerAutoLocation() {
       const click_player_auto_locate = utils.getValue("click_player_auto_locate");
       const offset_top = Math.trunc(utils.getValue("offset_top"));
-      const player_offset_top = Math.trunc(globalVariables['videoPlayerWrapper'].offset().top);
-      const playerDataScreen = await methods.getCurrentScreenMode()
+      const player_offset_top = Math.trunc(utils.getValue("player_offset_top"));
+      const playerDataScreen = await this.getCurrentScreenMode()
       if (click_player_auto_locate) {
-        globalVariables['videoPlayerWrapper'].on("click", function(event) {
+        $('#bilibili-player').on("click", function(event) {
           event.stopPropagation();
           if ($(this).attr("status") === "adjustment-mini") {
-            console.log("播放页调整：点击迷你播放器");
+            utils.logger.info("点击迷你播放器");
           } else {
             if (playerDataScreen !== "web") {
               $("html,body").scrollTop(player_offset_top - offset_top);
@@ -484,8 +535,8 @@ $(() => {
       const selected_screen_mode = utils.getValue("selected_screen_mode");
       const offset_top = Math.trunc(utils.getValue("offset_top"));
       const player_type = utils.getValue("player_type");
-      const player_offset_top = globalVariables['videoPlayerWrapper'].offset().top;
-      const video = globalVariables['videoPlayer'][0]
+      const player_offset_top = $('#bilibili-player').offset().top;
+      const video = $('#bilibili-player video')[0]
       if (player_type === "video") {
         utils.setValue("player_offset_top", player_offset_top);
         $("#comment").unbind('click').on("click", ".video-time,.video-seek", function(event) {
@@ -520,7 +571,7 @@ $(() => {
         const cancelMuteButtnDisplay = cancelMuteButtn.css("display");
         if (cancelMuteButtnDisplay === "block") {
           cancelMuteButtn.click();
-          console.log("播放页调整：已自动取消静音");
+          utils.logger.info("已自动取消静音");
         }
       }
       if (player_type === "bangumi" && globalVariables.autoCancelMuteTimes === 1) {
@@ -528,7 +579,7 @@ $(() => {
         const cancelMuteButtnClass = cancelMuteButtn.attr("class");
         if (cancelMuteButtnClass.includes("squirtle-volume-mute-state")) {
           cancelMuteButtn.click();
-          console.log("播放页调整：已自动取消静音");
+          utils.logger.info("已自动取消静音");
         }
       }
     },
@@ -549,7 +600,7 @@ $(() => {
                 return (!$(this).children("span.bpx-player-ctrl-quality-text").text().includes("4K") && !$(this).children("span.bpx-player-ctrl-quality-text").text().includes("8K"));
               });
               qualityValue.eq(0).click();
-              console.log("播放页调整：最高画质｜VIP｜不包含4K及8K｜切换成功");
+              utils.logger.info("最高画质｜VIP｜不包含4K及8K｜切换成功");
             }
             // 同时勾选包含4K和包含8K,自动选择8K
             if (contain_quality_4k && contain_quality_8k) {
@@ -557,7 +608,7 @@ $(() => {
                 return $(this).children("span.bpx-player-ctrl-quality-text").text().includes("8K");
               });
               qualityValue.eq(0).click();
-              console.log("播放页调整：最高画质｜VIP｜8K｜切换成功");
+              utils.logger.info("最高画质｜VIP｜8K｜切换成功");
             }
             // 仅勾选包含4K,选择4K
             if (contain_quality_4k && !contain_quality_8k) {
@@ -565,7 +616,7 @@ $(() => {
                 return $(this).children("span.bpx-player-ctrl-quality-text").text().includes("4K");
               });
               qualityValue.eq(0).click();
-              console.log("播放页调整：最高画质｜VIP｜4K｜切换成功");
+              utils.logger.info("最高画质｜VIP｜4K｜切换成功");
             }
             // 仅勾选包含8K,选择8K
             if (!contain_quality_4k && contain_quality_8k) {
@@ -573,31 +624,31 @@ $(() => {
                 return $(this).children("span.bpx-player-ctrl-quality-text").text().includes("8K");
               });
               qualityValue.eq(0).click();
-              console.log("播放页调整：最高画质｜VIP｜8K｜切换成功");
+              utils.logger.info("最高画质｜VIP｜8K｜切换成功");
             }
           }
           if (player_type === "bangumi" && globalVariables.autoSelectVideoHightestQualityTimes === 1) {
             if (contain_quality_4k) {
               $(".squirtle-quality-wrap >.squirtle-video-quality > ul > li").eq(0).click();
-              console.log("播放页调整：最高画质｜VIP｜包含4K｜切换成功");
+              utils.logger.info("最高画质｜VIP｜包含4K｜切换成功");
             } else {
               const qualityValue = $(".squirtle-quality-wrap > .squirtle-video-quality > ul > li").filter(function() {
                 return (!$(this).children(".squirtle-quality-text-c").children(".squirtle-quality-text").text().includes("4K") && $(this).children(".squirtle-quality-text-c").children(".squirtle-quality-text").text().includes("8K"));
               });
               qualityValue.eq(0).click();
-              console.log("播放页调整：最高画质｜VIP｜不包含4K｜切换成功");
+              utils.logger.info("最高画质｜VIP｜不包含4K｜切换成功");
             }
           }
         } else {
           if (player_type === "video" && globalVariables.autoSelectVideoHightestQualityTimes === 1) {
             const selectVipItemLength = $(".bpx-player-ctrl-quality > ul > li").children(".bpx-player-ctrl-quality-badge-bigvip").length;
             $(".bpx-player-ctrl-quality > ul > li").eq(selectVipItemLength).click();
-            console.log("播放页调整：最高画质｜非VIP｜切换成功");
+            utils.logger.info("最高画质｜非VIP｜切换成功");
           }
           if (player_type === "bangumi" && globalVariables.autoSelectVideoHightestQualityTimes === 1) {
             const selectVipItemLength = $(".squirtle-quality-wrap >.squirtle-video-quality > ul > li").children(".squirtle-bigvip").length;
             $(".squirtle-quality-wrap >.squirtle-video-quality > ul > li").eq(selectVipItemLength).click();
-            console.log("播放页调整：最高画质｜非VIP｜切换成功");
+            utils.logger.info("最高画质｜非VIP｜切换成功");
           }
         }
       } else {
@@ -606,7 +657,7 @@ $(() => {
     },
     // 添加样式文件
     addPluginStyle() {
-      const style = `.swal2-popup{width:34em!important;padding:1.25em!important}.swal2-html-container{margin:0!important;padding:16px 5px 0!important;width:100%!important;box-sizing:border-box!important}.swal2-footer{flex-direction:column!important}.swal2-close{top:5px!important;right:3px!important}.swal2-actions{margin:7px auto 0!important}.swal2-styled.swal2-confirm{background-color:#23ade5!important}.swal2-icon.swal2-info.swal2-icon-show{display:none!important}.player-adjustment-container,.swal2-container{z-index:999999999!important}.player-adjustment-popup{font-size:14px!important}.player-adjustment-setting-label{display:flex!important;align-items:center!important;justify-content:space-between!important;padding-top:10px!important}.player-adjustment-setting-checkbox{width:16px!important;height:16px!important}.player-adjustment-setting-tips{width:100%!important;display:flex!important;align-items:center!important;padding:5px!important;margin-top:10px!important;background:#f5f5f5!important;box-sizing:border-box!important;font-size:14px;color:#666!important;border-radius:2px!important;text-align:left!important}.player-adjustment-setting-tips svg{margin-right:5px!important}label.player-adjustment-setting-label input{border:1px solid #cecece!important;background:#fff!important}label.player-adjustment-setting-label input[type=checkbox],label.player-adjustment-setting-label input[type=radio]{width:16px!important;height:16px!important}label.player-adjustment-setting-label input:checked{border-color:#1986b3!important;background:#23ade5!important}.auto-quality-sub-options{display:flex;align-items:center;padding-left:15px}.auto-quality-sub-options label.player-adjustment-setting-label.fourK{margin-right:10px}.auto-quality-sub-options .player-adjustment-setting-label input[type="checkbox"]{margin-left:5px!important}.player-adjustment-setting-label.screen-mod input{margin-right:5px!important}`;
+      const style = `#playerAdjustment{height:500px;overflow:auto;overscroll-behavior:contain;padding-right:10px}.swal2-popup{width:34em!important;padding:1.25em!important}.swal2-html-container{margin:0!important;padding:16px 5px 0!important;width:100%!important;box-sizing:border-box!important}.swal2-footer{flex-direction:column!important}.swal2-close{top:5px!important;right:3px!important}.swal2-actions{margin:7px auto 0!important}.swal2-styled.swal2-confirm{background-color:#23ade5!important}.swal2-icon.swal2-info.swal2-icon-show{display:none!important}.player-adjustment-container,.swal2-container{z-index:999999999!important}.player-adjustment-popup{font-size:14px!important}.player-adjustment-setting-label{display:flex!important;align-items:center!important;justify-content:space-between!important;padding-top:10px!important}.player-adjustment-setting-checkbox{width:16px!important;height:16px!important}.player-adjustment-setting-tips{width:100%!important;display:flex!important;align-items:center!important;padding:5px!important;margin-top:10px!important;background:#f5f5f5!important;box-sizing:border-box!important;font-size:14px;color:#666!important;border-radius:2px!important;text-align:left!important}.player-adjustment-setting-tips svg{margin-right:5px!important}label.player-adjustment-setting-label input{border:1px solid #cecece!important;background:#fff!important}label.player-adjustment-setting-label input[type=checkbox],label.player-adjustment-setting-label input[type=radio]{width:16px!important;height:16px!important}label.player-adjustment-setting-label input:checked{border-color:#1986b3!important;background:#23ade5!important}.auto-quality-sub-options,.auto-locate-sub-options{display:flex;align-items:center;padding-left:15px}.auto-quality-sub-options label.player-adjustment-setting-label.fourK,.auto-locate-sub-options label.player-adjustment-setting-label.video{margin-right:10px}.auto-quality-sub-options .player-adjustment-setting-label input[type="checkbox"]{margin-left:5px!important}.player-adjustment-setting-label.screen-mod input{margin-right:5px!important}`;
       if (document.head) {
         utils.addStyle("swal-pub-style", "style", GM_getResourceText("swalStyle"));
         utils.addStyle("player-adjustment-style", "style", style);
@@ -631,13 +682,33 @@ $(() => {
                     } class="player-adjustment-setting-checkbox">
                   </label>
                   <span class="player-adjustment-setting-tips"> -> 请如实勾选，否则影响自动选择清晰度</span>
+                  <label class="player-adjustment-setting-label"> 自动定位至播放器
+                    <input type="checkbox" id="Auto-Locate" ${
+                      utils.getValue("auto_locate")
+                        ? "checked"
+                        : ""
+                    } class="player-adjustment-setting-checkbox">
+                  </label>
+                  <div class="auto-locate-sub-options">
+                    <label class="player-adjustment-setting-label video"> 普通视频(video)
+                      <input type="checkbox" id="Auto-Locate-Video" ${
+                        utils.getValue("auto_locate_video") ? "checked" : ""
+                      } class="player-adjustment-setting-checkbox">
+                    </label>
+                    <label class="player-adjustment-setting-label bangumi"> 其他视频(bangumi)
+                      <input type="checkbox" id="Auto-Locate-Bangumi" ${
+                        utils.getValue("auto_locate_bangumi") ? "checked" : ""
+                      } class="player-adjustment-setting-checkbox">
+                    </label>
+                  </div>
+                  <span class="player-adjustment-setting-tips"> -> 只有勾选自动定位至播放器，才会执行自动定位的功能；勾选自动定位至播放器后，video 和 bangumi 两者全选或全不选，默认在这两种类型视频播放页都执行；否则勾选哪种类型，就只在这种类型的播放页才执行。</span>
                   <label class="player-adjustment-setting-label" id="player-adjustment-Range-Wrapper">
                     <span>播放器顶部偏移(px)</span>
                     <input id="Top-Offset" value="${utils.getValue(
                       "offset_top"
                     )}" style="padding:5px;width: 200px;border: 1px solid #cecece;">
                   </label>
-                  <span class="player-adjustment-setting-tips"> -> 播放器距离浏览器窗口默认距离为 ${Math.trunc(globalVariables['videoPlayerWrapper'].offset().top)}；请填写小于 ${Math.trunc(globalVariables['videoPlayerWrapper'].offset().top)} 的正整数或 0；当值为 0 时，播放器上沿将紧贴浏览器窗口上沿、值为 ${Math.trunc(globalVariables['videoPlayerWrapper'].offset().top)} 时，将保持B站默认。 </span>
+                  <span class="player-adjustment-setting-tips"> -> 播放器距离浏览器窗口默认距离为 ${Math.trunc($('#bilibili-player').offset().top)}；请填写小于 ${Math.trunc($('#bilibili-player').offset().top)} 的正整数或 0；当值为 0 时，播放器上沿将紧贴浏览器窗口上沿、值为 ${Math.trunc($('#bilibili-player').offset().top)} 时，将保持B站默认。 </span>
                   <label class="player-adjustment-setting-label"> 点击播放器时定位
                     <input type="checkbox" id="Click-Player-Auto-Location" ${
                       utils.getValue("click_player_auto_locate")
@@ -715,6 +786,15 @@ $(() => {
             $(".fourK,.eightK").css("display", "none!important");
           }
         });
+        $("#Auto-Locate").change((e) => {
+          utils.setValue("auto_locate", e.target.checked);
+        });
+        $("#Auto-Locate-Video").change((e) => {
+          utils.setValue("auto_locate_video", e.target.checked);
+        });
+        $("#Auto-Locate-Bangumi").change((e) => {
+          utils.setValue("auto_locate_bangumi", e.target.checked);
+        });
         $("#Top-Offset").change((e) => {
           utils.setValue("offset_top", e.target.value * 1);
         });
@@ -756,6 +836,14 @@ $(() => {
         }, 100)
       })
     },
+    freezeHeaderAndVideoTitleStyles() {
+      $('#biliMainHeader').attr("style", "height:64px!important");
+      $('#viewbox_report').attr("style", "height:106px!important");
+      $('#v_upinfo').attr("style", "height:80px!important");
+      $('.members-info-v1').attr("style", "padding-top:0!important");
+      $('.members-info-v1 .wide-members-header').attr("style", "height:0!important");
+      $('.members-info-v1 .wide-members-container .up-card .info-tag').attr("style", "display:none!important");
+    },
     // 判断当前窗口是否在最上方
     isTopWindow() {
       return window.self === window.top;
@@ -764,58 +852,77 @@ $(() => {
     thePrepFunction() {
       globalVariables.thePrepFunctionRunningTimes++
       if (globalVariables.thePrepFunctionRunningTimes === 1) {
+        utils.isLogin()
         utils.checkBrowserHistory()
         utils.historyListener();
-        methods.initValue();
-        methods.addPluginStyle();
-        methods.isTopWindow() && methods.registerMenuCommand();
-        methods.getCurrentPlayerType();
-        methods.getCurrentScreenMode();
-        methods.jumpVideoTime();
+        this.initValue();
+        this.addPluginStyle();
+        this.isTopWindow() && this.registerMenuCommand();
+        this.getCurrentPlayerType();
+        this.getCurrentScreenMode();
+        this.jumpVideoTime();
       }
     },
     // 主函数
     async theMainFunction() {
       globalVariables.theMainFunctionRunningTimes++
       if (globalVariables.theMainFunctionRunningTimes === 1) {
-        $("body").css("overflow", "hidden");
-        const isPlayable = await methods.checkVideoPlayerExists();
-        if (isPlayable) {
-          console.log(`播放页调整：播放器加载｜完毕`)
-          // console.time('播放页调整：切换模式耗时')
-          methods.watchScreenModeChange();
-          const selectedScreenMode = await methods.autoSelectScreenMode()
-          // console.timeEnd('播放页调整：切换模式耗时')
-          if (selectedScreenMode.flag) {
-            console.log(`播放页调整：屏幕模式｜${selectedScreenMode.mode}｜切换成功`)
-            methods.autoCancelMute();
-            methods.autoSelectVideoHightestQuality();
-            methods.insertBackToPlayerButton();
-            methods.clickPlayerAutoLocation();
-            const webfull_unlock = utils.getValue('webfull_unlock')
-            if (webfull_unlock && selectedScreenMode.mode === 'web') {
-              methods.fixedWebfullUnlockStyle();
-            }
-            // console.time('播放页调整：自动定位耗时')
-            const autoLocationDone = await methods.autoLocation()
-            // console.timeEnd('播放页调整：自动定位耗时')
-            if (autoLocationDone) {
-              $("body").css("overflow", "unset");
-              console.log(`播放页调整：自动定位｜成功`)
-              const loaded = await methods.checkVideoPageLoaded()
+        const videoPlayerExists = await this.checkVideoPlayerExists()
+        if (videoPlayerExists) {
+          utils.logger.info(`播放器｜存在`)
+          $("body").css("overflow", "hidden");
+          const isPlayable = await this.checkVideoCanPlayThrough();
+          if (isPlayable) {
+            utils.logger.info(`视频资源｜可以播放`)
+            // console.time('播放页调整：切换模式耗时')
+            this.watchScreenModeChange();
+            const selectedScreenMode = await this.autoSelectScreenMode()
+            // console.timeEnd('播放页调整：切换模式耗时')
+            if (selectedScreenMode.flag) {
+              utils.logger.info(`屏幕模式｜${selectedScreenMode.mode}｜切换成功`)
+              this.autoCancelMute();
+              this.autoSelectVideoHightestQuality();
+              this.insertBackToPlayerButton();
+              this.clickPlayerAutoLocation();
+              const webfull_unlock = utils.getValue('webfull_unlock')
+              if (webfull_unlock && selectedScreenMode.mode === 'web') {
+                this.fixedWebfullUnlockStyle();
+              }
+              // console.time('播放页调整：自动定位耗时')
+              this.freezeHeaderAndVideoTitleStyles();
+              const auto_locate = utils.getValue('auto_locate');
+              const auto_locate_video = utils.getValue('auto_locate_video');
+              const auto_locate_bangumi = utils.getValue('auto_locate_bangumi');
+              const autoLocationDone = await this.autoLocation()
+              // console.timeEnd('播放页调整：自动定位耗时')
+              if (auto_locate && autoLocationDone) {
+                $("body").css("overflow", "unset");
+                utils.logger.info(`自动定位｜成功`)
+              }
+              if (!auto_locate || (auto_locate && auto_locate_video && !auto_locate_bangumi) || (auto_locate && auto_locate_bangumi && !auto_locate_video)) {
+                $("body").css("overflow", "unset");
+                utils.logger.info(`自动定位｜未开启`)
+              }
+              const loaded = await this.checkVideoPageLoaded()
               setTimeout(() => {
                 if (loaded) {
-                  console.log(`播放页调整：页面加载｜完毕`)
+                  utils.logger.info(`页面加载｜完毕`)
                 } else {
                   location.reload()
                 }
               }, 2000)
             }
+            else utils.logger.error(`屏幕模式｜${selectedScreenMode.mode}｜切换失败`)
           }
+          else utils.logger.error(`视频资源｜加载失败`)
         }
+        else utils.logger.error(`播放器｜不存在`)
       }
     }
   }
-  methods.thePrepFunction()
-  methods.theMainFunction()
+  if (utils.isLogin()) {
+    methods.thePrepFunction();
+    methods.theMainFunction();
+  }
+  else utils.logger.warn("请登录｜本脚本只能在登录状态下使用")
 })
