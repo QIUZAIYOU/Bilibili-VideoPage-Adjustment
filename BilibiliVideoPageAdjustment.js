@@ -2,15 +2,15 @@
 // @name              哔哩哔哩（bilibili.com）播放页调整
 // @license           GPL-3.0 License
 // @namespace         https://greasyfork.org/zh-CN/scripts/415804-bilibili%E6%92%AD%E6%94%BE%E9%A1%B5%E8%B0%83%E6%95%B4-%E8%87%AA%E7%94%A8
-// @version           0.12.8
+// @version           0.12.6
 // @description       1.自动定位到播放器（进入播放页，可自动定位到播放器，可设置偏移量及是否在点击主播放器时定位）；2.可设置是否自动选择最高画质；3.可设置播放器默认模式；
 // @author            QIAN
 // @match             *://*.bilibili.com/video/*
 // @match             *://*.bilibili.com/bangumi/play/*
 // @match             *://*.bilibili.com/list/watchlater*
 // @require           https://cdn.jsdelivr.net/npm/jquery@3.2.1/dist/jquery.min.js
-// @require           https://unpkg.com/sweetalert2@11.7.2/dist/sweetalert2.min.js
-// @resource          swalStyle https://unpkg.com/sweetalert2@11.7.2/dist/sweetalert2.min.css
+// @require           https://cdn.jsdelivr.net/npm/sweetalert2@11.3.6/dist/sweetalert2.all.min.js
+// @resource          swalStyle https://cdn.jsdelivr.net/npm/sweetalert2@11.3.6/dist/sweetalert2.min.css
 // @grant             GM_setValue
 // @grant             GM_getValue
 // @grant             GM_registerMenuCommand
@@ -192,12 +192,6 @@ $(function() {
         }
       }
       if (document[hidden] !== undefined) return document[hidden];
-    },
-    cookie(key) {
-        return document.cookie.replace(new RegExp(String.raw`(?:(?:^|.*;\s*)${key}\s*=\s*([^;]*).*$)|^.*$`), '$1')
-      },
-    isLogin(){
-      return Boolean(this.cookie('bili_jct'))
     }
   };
   const main = {
@@ -846,13 +840,15 @@ $(function() {
       const player_type = utils.getValue("player_type");
       const playerDataScreen = $(".bpx-player-container").attr("data-screen");
       if (player_type === "video" && globalCounts.insertLocateButtonCounts === 1) {
-        const locateButtonHtml = `<div class="item locate" title="定位至播放器">\n        <svg t="1643419779790" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1775" width="200" height="200" style="width: 50%;height: 100%;fill: currentColor;"><path d="M512 352c-88.008 0-160.002 72-160.002 160 0 88.008 71.994 160 160.002 160 88.01 0 159.998-71.992 159.998-160 0-88-71.988-160-159.998-160z m381.876 117.334c-19.21-177.062-162.148-320-339.21-339.198V64h-85.332v66.134c-177.062 19.198-320 162.136-339.208 339.198H64v85.334h66.124c19.208 177.062 162.144 320 339.208 339.208V960h85.332v-66.124c177.062-19.208 320-162.146 339.21-339.208H960v-85.334h-66.124zM512 810.666c-164.274 0-298.668-134.396-298.668-298.666 0-164.272 134.394-298.666 298.668-298.666 164.27 0 298.664 134.396 298.664 298.666S676.27 810.666 512 810.666z" p-id="1776"></path></svg></div>`;
-        const floatNav = $(".float-nav-exp .nav-menu");
-        const locateButton = $(".float-nav-exp .nav-menu .item.locate");
+        const locateButtonHtml = `<div class="fixed-sidenav-storage-item locate" title="定位至播放器">\n<svg t="1643419779790" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1775" width="200" height="200" style="width: 50%;height: 100%;fill: currentColor;"><path d="M512 352c-88.008 0-160.002 72-160.002 160 0 88.008 71.994 160 160.002 160 88.01 0 159.998-71.992 159.998-160 0-88-71.988-160-159.998-160z m381.876 117.334c-19.21-177.062-162.148-320-339.21-339.198V64h-85.332v66.134c-177.062 19.198-320 162.136-339.208 339.198H64v85.334h66.124c19.208 177.062 162.144 320 339.208 339.208V960h85.332v-66.124c177.062-19.208 320-162.146 339.21-339.208H960v-85.334h-66.124zM512 810.666c-164.274 0-298.668-134.396-298.668-298.666 0-164.272 134.394-298.666 298.668-298.666 164.27 0 298.664 134.396 298.664 298.666S676.27 810.666 512 810.666z" p-id="1776"></path></svg></div>`
+        const floatNav = $('.fixed-sidenav-storage .back-to-top-wrap')
+        const locateButton = $('.storable-items .fixed-sidenav-storage-item.locate')
         const offset_top = Math.trunc(utils.getValue("offset_top"));;
         const player_offset_top = Math.trunc(utils.getValue("player_offset_top"));
         $(".fixed-nav").css("bottom", "274px");
-        floatNav.prepend(locateButtonHtml);
+        const dataV = floatNav[0].attributes[1].name
+        const locateButtonHtmlDataV = locateButtonHtml.replace(`title="定位至播放器"`,`title="定位至播放器" ${dataV}`)
+        floatNav.prepend(locateButtonHtmlDataV)
         locateButton.not(":first-child").remove();
         floatNav.on("click", ".locate", function() {
           if (playerDataScreen !== "web") {
@@ -1139,7 +1135,7 @@ $(function() {
       });
     },
     addPluginStyle() {
-      const style = `#playerAdjustment{height:500px;overflow:auto;overscroll-behavior:contain;padding-right:10px}.swal2-popup{width:34em!important;padding:1.25em!important}.swal2-html-container{margin:0!important;padding:16px 5px 0!important;width:100%!important;box-sizing:border-box!important}.swal2-footer{flex-direction:column!important}.swal2-close{top:5px!important;right:3px!important}.swal2-actions{margin:7px auto 0!important}.swal2-styled.swal2-confirm{background-color:#23ade5!important}.swal2-icon.swal2-info.swal2-icon-show{display:none!important}.player-adjustment-container,.swal2-container{z-index:999999999!important}.player-adjustment-popup{font-size:14px!important}.player-adjustment-setting-label{display:flex!important;align-items:center!important;justify-content:space-between!important;padding-top:10px!important}.player-adjustment-setting-checkbox{width:16px!important;height:16px!important}.player-adjustment-setting-tips{width:100%!important;display:flex!important;align-items:center!important;padding:5px!important;margin-top:10px!important;background:#f5f5f5!important;box-sizing:border-box!important;font-size:14px;color:#666!important;border-radius:2px!important;text-align:left!important}.player-adjustment-setting-tips svg{margin-right:5px!important}label.player-adjustment-setting-label input{border:1px solid #cecece!important;background:#fff!important}label.player-adjustment-setting-label input[type=checkbox],label.player-adjustment-setting-label input[type=radio]{width:16px!important;height:16px!important}label.player-adjustment-setting-label input:checked{border-color:#1986b3!important;background:#23ade5!important}.auto-quality-sub-options,.auto-locate-sub-options{display:flex;align-items:center;padding-left:15px}.auto-quality-sub-options label.player-adjustment-setting-label.fourK,.auto-locate-sub-options label.player-adjustment-setting-label.video{margin-right:10px}.auto-quality-sub-options .player-adjustment-setting-label input[type="checkbox"]{margin-left:5px!important}.player-adjustment-setting-label.screen-mod input{margin-right:5px!important}`;
+      const style = `#playerAdjustment{height:500px}.swal2-popup{width:34em!important;padding:1.25em!important}.swal2-html-container{margin:0!important;padding:16px 5px 0!important;width:100%!important;box-sizing:border-box!important}.swal2-footer{flex-direction:column!important}.swal2-close{top:5px!important;right:3px!important}.swal2-actions{margin:7px auto 0!important}.swal2-styled.swal2-confirm{background-color:#23ade5!important}.swal2-icon.swal2-info.swal2-icon-show{display:none!important}.player-adjustment-container,.swal2-container{z-index:999999999!important}.player-adjustment-popup{font-size:14px!important}.player-adjustment-setting-label{display:flex!important;align-items:center!important;justify-content:space-between!important;padding-top:10px!important}.player-adjustment-setting-checkbox{width:16px!important;height:16px!important}.player-adjustment-setting-tips{width:100%!important;display:flex!important;align-items:center!important;padding:5px!important;margin-top:10px!important;background:#f5f5f5!important;box-sizing:border-box!important;font-size:14px;color:#666!important;border-radius:2px!important;text-align:left!important}.player-adjustment-setting-tips svg{margin-right:5px!important}label.player-adjustment-setting-label input{border:1px solid #cecece!important;background:#fff!important}label.player-adjustment-setting-label input[type=checkbox],label.player-adjustment-setting-label input[type=radio]{width:16px!important;height:16px!important}label.player-adjustment-setting-label input:checked{border-color:#1986b3!important;background:#23ade5!important}.auto-quality-sub-options,.auto-locate-sub-options{display:flex;align-items:center;padding-left:15px}.auto-quality-sub-options label.player-adjustment-setting-label.fourK,.auto-locate-sub-options label.player-adjustment-setting-label.video{margin-right:10px}.auto-quality-sub-options .player-adjustment-setting-label input[type="checkbox"]{margin-left:5px!important}.player-adjustment-setting-label.screen-mod input{margin-right:5px!important}`;
       if (document.head) {
         utils.addStyle("swal-pub-style", "style", GM_getResourceText("swalStyle"));
         utils.addStyle("player-adjustment-style", "style", style);
@@ -1169,6 +1165,5 @@ $(function() {
       utils.historyListener();
     }
   };
-  if(utils.isLogin()) main.init();
-  else console.log("播放页调整：本脚本只能在登录状态下使用");
+  main.init();
 });
