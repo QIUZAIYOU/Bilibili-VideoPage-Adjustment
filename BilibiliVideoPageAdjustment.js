@@ -2,7 +2,7 @@
 // @name              哔哩哔哩（bilibili.com）播放页调整
 // @license           GPL-3.0 License
 // @namespace         https://greasyfork.org/zh-CN/scripts/415804-bilibili%E6%92%AD%E6%94%BE%E9%A1%B5%E8%B0%83%E6%95%B4-%E8%87%AA%E7%94%A8
-// @version           0.13
+// @version           0.14
 // @description       1.自动定位到播放器（进入播放页，可自动定位到播放器，可设置偏移量及是否在点击主播放器时定位）；2.可设置是否自动选择最高画质；3.可设置播放器默认模式；
 // @author            QIAN
 // @match             *://*.bilibili.com/video/*
@@ -57,7 +57,8 @@ $(() => {
     checkElementExistence,
     isLogin,
     logger,
-    checkPageReadyState
+    checkPageReadyState,
+    pageReload
   } = {
     getValue(name) {
       return GM_getValue(name)
@@ -206,6 +207,9 @@ $(() => {
           }
         }, 100);
       });
+    },
+    pageReload(){
+      location.reload(true)
     }
   }
   const {
@@ -302,7 +306,7 @@ $(() => {
       return new Promise(resolve => {
         const checkTimeout = setTimeout(() => {
           // logger.error('视频资源｜脚本检测失败｜重载页面')
-          // location.reload(true)
+          // pageReload()
           resolve(false)
         }, 7000)
         $('#bilibili-player video').on('canplaythrough', () => {
@@ -369,11 +373,11 @@ $(() => {
     autoSelectScreenMode() {
       autoSelectScreenModeTimes++
       if (autoSelectScreenModeTimes === 1) {
-        const $wideEnterBtn = player_type === 'video' ? $('.bpx-player-ctrl-wide-enter') : $('.squirtle-widescreen-inactive')
-        const $webEnterBtn = player_type === 'video' ? $('.bpx-player-ctrl-web-enter') : $('.squirtle-pagefullscreen-inactive')
+      const $wideEnterBtn = player_type === 'video' ? document.querySelector('.bpx-player-ctrl-wide-enter') : document.querySelector('.squirtle-widescreen-inactive');
+      const $webEnterBtn = player_type === 'video' ? document.querySelector('.bpx-player-ctrl-web-enter') : document.querySelector('.squirtle-pagefullscreen-inactive');
         const selectModeBtn = selected_screen_mode === 'wide' ? $wideEnterBtn : $webEnterBtn
         const expect_mode = selected_screen_mode === 'wide' ? 'wide' : 'web'
-        let attempts = 3
+        let attempts = 50
         selectModeBtn.click()
         const checkScreenMode = async (expect_mode) => {
           const success = await this.checkScreenModeSuccess(expect_mode)
@@ -385,10 +389,14 @@ $(() => {
               mode: selected_screen_mode,
             }
           } else {
+            await sleep(1000)
             selectModeBtn.click()
             logger.warn('自动选择屏幕模式失败正在重试')
             attempts--
-            if (attempts === 0) location.reload(true)
+            if (attempts === 0) {
+              clearInterval(checkScreenModeInterval)
+              pageReload()
+            }
           }
         }
         let checkScreenModeInterval = setInterval(checkScreenMode, 100, expect_mode)
@@ -879,12 +887,12 @@ $(() => {
           denyButtonText: '重置',
           footer: '<div style="text-align: center;">如果发现脚本不能用，可能是播放页更新了，请耐心等待适配。</div><hr style="border: none;height: 1px;margin: 12px 0;background: #eaeaea;"><div style="text-align: center;font-size: 1.25em;"><a href="//userstyles.world/style/241/nightmode-for-bilibili-com" target="_blank">夜间哔哩 - </a><a href="//greasyfork.org/zh-CN/scripts/415804-bilibili%E6%92%AD%E6%94%BE%E9%A1%B5%E8%B0%83%E6%95%B4-%E8%87%AA%E7%94%A8" target="_blank">检查更新</a></div>',
         }).then(res => {
-          res.isConfirmed && location.reload(true)
+          res.isConfirmed && pageReload()
           if (res.isConfirmed) {
-            location.reload(true)
+            pageReload()
           } else if (res.isDenied) {
             setValue('current_screen_mode', 'normal')
-            location.reload(true)
+            pageReload()
           }
         })
         $('#Is-Vip').change(e => {
@@ -960,15 +968,16 @@ $(() => {
             logger.info(`播放器｜存在`)
             $('body').css('overflow', 'hidden')
             const isPlayable = await this.checkVideoCanPlayThrough()
-            const pageComplete = await checkPageReadyState('complete')
-            if (isPlayable || (!isPlayable && pageComplete)) {
+            const screenModeBtnExists = await checkElementExistence('#bilibili-player .bpx-player-ctrl-btn', 100, 100)
+            // const pageComplete = await checkPageReadyState('complete')
+            if (isPlayable || (!isPlayable && screenModeBtnExists)) {
               logger.info(`视频资源｜可以播放`)
               // console.time('播放页调整：切换模式耗时')
               this.watchScreenModeChange()
               await sleep(100)
               const selectedScreenMode = await this.autoSelectScreenMode()
               // console.timeEnd('播放页调整：切换模式耗时')
-              if (selectedScreenMode.done) {
+              if (selectedScreenMode && selectedScreenMode.done) {
                 logger.info(`屏幕模式｜${selectedScreenMode['mode'].toUpperCase()}｜切换成功`)
                 this.autoCancelMute()
                 // console.time('播放页调整：选择画质耗时')
@@ -998,25 +1007,25 @@ $(() => {
                   if (loaded) {
                     logger.info(`页面加载｜完毕`)
                   } else {
-                    location.reload(true)
+                    pageReload()
                   }
                 }
               } else {
                 logger.error(`屏幕模式｜${selectedScreenMode.mode}｜切换失败`)
-                location.reload(true)
+                pageReload()
               }
             } else {
               logger.error(`视频资源｜加载失败`)
-              location.reload(true)
+              pageReload()
             }
           } else {
             logger.error(`播放器｜不存在`)
-            location.reload(true)
+            pageReload()
           }
         }
       } catch (error) {
         logger.error(error)
-        location.reload(true)
+        pageReload()
       }
     },
   }
