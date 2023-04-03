@@ -2,7 +2,7 @@
 // @name              哔哩哔哩（bilibili.com）播放页调整
 // @license           GPL-3.0 License
 // @namespace         https://greasyfork.org/zh-CN/scripts/415804-bilibili%E6%92%AD%E6%94%BE%E9%A1%B5%E8%B0%83%E6%95%B4-%E8%87%AA%E7%94%A8
-// @version           0.15
+// @version           0.16
 // @description       1.自动定位到播放器（进入播放页，可自动定位到播放器，可设置偏移量及是否在点击主播放器时定位）；2.可设置是否自动选择最高画质；3.可设置播放器默认模式；
 // @author            QIAN
 // @match             *://*.bilibili.com/video/*
@@ -887,12 +887,12 @@ $(() => {
           denyButtonText: '重置',
           footer: '<div style="text-align: center;">如果发现脚本不能用，可能是播放页更新了，请耐心等待适配。</div><hr style="border: none;height: 1px;margin: 12px 0;background: #eaeaea;"><div style="text-align: center;font-size: 1.25em;"><a href="//userstyles.world/style/241/nightmode-for-bilibili-com" target="_blank">夜间哔哩 - </a><a href="//greasyfork.org/zh-CN/scripts/415804-bilibili%E6%92%AD%E6%94%BE%E9%A1%B5%E8%B0%83%E6%95%B4-%E8%87%AA%E7%94%A8" target="_blank">检查更新</a></div>',
         }).then(res => {
-          res.isConfirmed && pageReload()
+          res.isConfirmed && location.reload(true)
           if (res.isConfirmed) {
-            pageReload()
+            location.reload(true)
           } else if (res.isDenied) {
             setValue('current_screen_mode', 'normal')
-            pageReload()
+            location.reload(true)
           }
         })
         $('#Is-Vip').change(e => {
