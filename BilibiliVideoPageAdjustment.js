@@ -209,7 +209,7 @@ $(() => {
       });
     },
     pageReload(){
-      // location.reload(true)
+      location.reload(true)
     }
   }
   const {
