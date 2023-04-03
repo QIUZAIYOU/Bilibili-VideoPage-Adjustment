@@ -2,7 +2,7 @@
 // @name              哔哩哔哩（bilibili.com）播放页调整
 // @license           GPL-3.0 License
 // @namespace         https://greasyfork.org/zh-CN/scripts/415804-bilibili%E6%92%AD%E6%94%BE%E9%A1%B5%E8%B0%83%E6%95%B4-%E8%87%AA%E7%94%A8
-// @version           0.14
+// @version           0.15
 // @description       1.自动定位到播放器（进入播放页，可自动定位到播放器，可设置偏移量及是否在点击主播放器时定位）；2.可设置是否自动选择最高画质；3.可设置播放器默认模式；
 // @author            QIAN
 // @match             *://*.bilibili.com/video/*
@@ -209,7 +209,7 @@ $(() => {
       });
     },
     pageReload(){
-      location.reload(true)
+      // location.reload(true)
     }
   }
   const {
@@ -968,7 +968,7 @@ $(() => {
             logger.info(`播放器｜存在`)
             $('body').css('overflow', 'hidden')
             const isPlayable = await this.checkVideoCanPlayThrough()
-            const screenModeBtnExists = await checkElementExistence('#bilibili-player .bpx-player-ctrl-btn', 100, 100)
+            const screenModeBtnExists = player_type==='video'?await checkElementExistence('#bilibili-player .bpx-player-ctrl-btn', 100, 100):await checkElementExistence('#bilibili-player .squirtle-video-item', 100, 100)
             // const pageComplete = await checkPageReadyState('complete')
             if (isPlayable || (!isPlayable && screenModeBtnExists)) {
               logger.info(`视频资源｜可以播放`)
