@@ -208,7 +208,7 @@ $(() => {
         }, 100);
       });
     },
-    pageReload(){
+    pageReload() {
       location.reload(true)
     }
   }
@@ -373,8 +373,8 @@ $(() => {
     autoSelectScreenMode() {
       autoSelectScreenModeTimes++
       if (autoSelectScreenModeTimes === 1) {
-      const $wideEnterBtn = player_type === 'video' ? document.querySelector('.bpx-player-ctrl-wide-enter') : document.querySelector('.squirtle-widescreen-inactive');
-      const $webEnterBtn = player_type === 'video' ? document.querySelector('.bpx-player-ctrl-web-enter') : document.querySelector('.squirtle-pagefullscreen-inactive');
+        const $wideEnterBtn = player_type === 'video' ? document.querySelector('.bpx-player-ctrl-wide-enter') : document.querySelector('.squirtle-widescreen-inactive');
+        const $webEnterBtn = player_type === 'video' ? document.querySelector('.bpx-player-ctrl-web-enter') : document.querySelector('.squirtle-pagefullscreen-inactive');
         const selectModeBtn = selected_screen_mode === 'wide' ? $wideEnterBtn : $webEnterBtn
         const expect_mode = selected_screen_mode === 'wide' ? 'wide' : 'web'
         let attempts = 50
@@ -968,7 +968,7 @@ $(() => {
             logger.info(`播放器｜存在`)
             $('body').css('overflow', 'hidden')
             const isPlayable = await this.checkVideoCanPlayThrough()
-            const screenModeBtnExists = player_type==='video'?await checkElementExistence('#bilibili-player .bpx-player-ctrl-btn', 100, 100):await checkElementExistence('#bilibili-player .squirtle-video-item', 100, 100)
+            const screenModeBtnExists = player_type === 'video' ? await checkElementExistence('#bilibili-player .bpx-player-ctrl-btn', 100, 100) : await checkElementExistence('#bilibili-player .squirtle-video-item', 100, 100)
             // const pageComplete = await checkPageReadyState('complete')
             if (isPlayable || (!isPlayable && screenModeBtnExists)) {
               logger.info(`视频资源｜可以播放`)
