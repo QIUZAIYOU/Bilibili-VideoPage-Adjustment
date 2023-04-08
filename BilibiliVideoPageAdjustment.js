@@ -2,7 +2,7 @@
 // @name              哔哩哔哩（bilibili.com）播放页调整
 // @license           GPL-3.0 License
 // @namespace         https://greasyfork.org/zh-CN/scripts/415804-bilibili%E6%92%AD%E6%94%BE%E9%A1%B5%E8%B0%83%E6%95%B4-%E8%87%AA%E7%94%A8
-// @version           0.16
+// @version           0.17
 // @description       1.自动定位到播放器（进入播放页，可自动定位到播放器，可设置偏移量及是否在点击主播放器时定位）；2.可设置是否自动选择最高画质；3.可设置播放器默认模式；
 // @author            QIAN
 // @match             *://*.bilibili.com/video/*
@@ -35,6 +35,7 @@ $(() => {
     webfullUnlockTimes,
     insertGoToCommentsButtonTimes,
     autoSelectVideoHightestQualityTimes,
+    functionExecutionsTimes = 0,
   } = {
     currentUrl: window.location.href,
     theMainFunctionRunningTimes: 0,
@@ -169,10 +170,14 @@ $(() => {
     },
     // 检查指定HTML元素是否存在
     checkElementExistence(selector, maxAttempts, interval) {
+      // functionExecutionsTimes += 1
+      const funName = (new Error()).stack.split("\n")[2].trim().split(" ")[1].replace('Object.', '')
+      // logger.debug(`(调用：${functionExecutionsTimes}) ${funName} -> ${selector}`)
       return new Promise(resolve => {
         let attempts = 0
         const intervalId = setInterval(() => {
           attempts++
+          // logger.debug(`(尝试：${attempts}) -> ${selector}`)
           const element = $(selector)
           if (element.length) {
             clearInterval(intervalId)
@@ -196,6 +201,9 @@ $(() => {
       },
       error(content) {
         console.error('%c播放页调整', 'color:white;background:#f33;padding:2px;border-radius:2px', content)
+      },
+      debug(content){
+        console.info('%c播放页调整(调试)', 'color:white;background:#cc00ff;padding:2px;border-radius:2px', content)
       },
     },
     checkPageReadyState(state) {
@@ -298,39 +306,50 @@ $(() => {
     // 检查视频资源是否加载完毕并处于可播放状态
     async checkVideoCanPlayThrough() {
       const BwpVideoPlayerExists = await checkElementExistence('bwp-video', 10, 10)
+      // logger.debug(`bwp-video｜${BwpVideoPlayerExists?'存在':'不存在'}`
       if (BwpVideoPlayerExists) {
         return new Promise(resolve => {
           resolve(true)
         })
-      }
-      return new Promise(resolve => {
-        const checkTimeout = setTimeout(() => {
-          // logger.error('视频资源｜脚本检测失败｜重载页面')
-          // pageReload()
-          resolve(false)
-        }, 7000)
-        $('#bilibili-player video').on('canplaythrough', () => {
-          // logger.info("视频资源加载｜成功")
-          let attempts = 10
-          const timer = setInterval(() => {
-            const isHidden = $('#bilibili-player .bpx-player-container').attr('data-ctrl-hidden')
-            if (isHidden === 'false') {
-              clearInterval(timer)
-              clearTimeout(checkTimeout)
-              // logger.info(`视频可播放`)
-              // logger.info(`控制条｜出现(hidden:${isHidden})`)
-              resolve(true)
-            } else if (attempts <= 0) {
-              clearInterval(timer)
-              clearTimeout(checkTimeout)
-              // logger.error("控制条｜检查失败")
+      } else {
+        const $video = $('#bilibili-player video')
+        const videoReadyState = $video[0].readyState
+        // logger.debug(`视频资源｜${videoReadyState>=4?'可播放':'不可播放'}`
+        if (videoReadyState >= 4) {
+          return new Promise(resolve => {
+            resolve(true)
+          })
+        } else {
+          return new Promise(resolve => {
+            const checkTimeout = setTimeout(() => {
+              // logger.error('视频资源｜脚本检测失败｜重载页面')
+              // pageReload()
               resolve(false)
-            }
-            // logger.info("控制条｜检查中")
-            attempts--
-          }, 100)
-        })
-      })
+            }, 7000)
+            $video.on('canplaythrough', () => {
+              // logger.info("视频资源加载｜成功")
+              let attempts = 10
+              const timer = setInterval(() => {
+                const isHidden = $('#bilibili-player .bpx-player-container').attr('data-ctrl-hidden')
+                if (isHidden === 'false') {
+                  clearInterval(timer)
+                  clearTimeout(checkTimeout)
+                  // logger.info(`视频可播放`)
+                  // logger.info(`控制条｜出现(hidden:${isHidden})`)
+                  resolve(true)
+                } else if (attempts <= 0) {
+                  clearInterval(timer)
+                  clearTimeout(checkTimeout)
+                  // logger.error("控制条｜检查失败")
+                  resolve(false)
+                }
+                // logger.info("控制条｜检查中")
+                attempts--
+              }, 100)
+            })
+          })
+        }
+      }
     },
     // 获取当前视频类型(video/bangumi)
     getCurrentPlayerType() {
@@ -968,7 +987,9 @@ $(() => {
             logger.info(`播放器｜存在`)
             $('body').css('overflow', 'hidden')
             const isPlayable = await this.checkVideoCanPlayThrough()
+            // console.time('播放页调整：判断按钮出现')
             const screenModeBtnExists = player_type === 'video' ? await checkElementExistence('#bilibili-player .bpx-player-ctrl-btn', 100, 100) : await checkElementExistence('#bilibili-player .squirtle-video-item', 100, 100)
+            // console.timeEnd('播放页调整：判断按钮出现')
             // const pageComplete = await checkPageReadyState('complete')
             if (isPlayable || (!isPlayable && screenModeBtnExists)) {
               logger.info(`视频资源｜可以播放`)
