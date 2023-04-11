@@ -2,12 +2,12 @@
 // @name              哔哩哔哩（bilibili.com）播放页调整
 // @license           GPL-3.0 License
 // @namespace         https://greasyfork.org/zh-CN/scripts/415804-bilibili%E6%92%AD%E6%94%BE%E9%A1%B5%E8%B0%83%E6%95%B4-%E8%87%AA%E7%94%A8
-// @version           0.17
+// @version           0.18
 // @description       1.自动定位到播放器（进入播放页，可自动定位到播放器，可设置偏移量及是否在点击主播放器时定位）；2.可设置是否自动选择最高画质；3.可设置播放器默认模式；
 // @author            QIAN
 // @match             *://*.bilibili.com/video/*
 // @match             *://*.bilibili.com/bangumi/play/*
-// @match             *://*.bilibili.com/list/watchlater*
+// @match             *://*.bilibili.com/list/*
 // @run-at            document-start
 // @require           https://cdn.jsdelivr.net/npm/jquery@3.2.1/dist/jquery.min.js
 // @require           https://unpkg.com/sweetalert2@11.7.2/dist/sweetalert2.min.js
@@ -202,7 +202,7 @@ $(() => {
       error(content) {
         console.error('%c播放页调整', 'color:white;background:#f33;padding:2px;border-radius:2px', content)
       },
-      debug(content){
+      debug(content) {
         console.info('%c播放页调整(调试)', 'color:white;background:#cc00ff;padding:2px;border-radius:2px', content)
       },
     },
@@ -217,7 +217,7 @@ $(() => {
       });
     },
     pageReload() {
-      location.reload(true)
+      // location.reload(true)
     }
   }
   const {
@@ -353,7 +353,7 @@ $(() => {
     },
     // 获取当前视频类型(video/bangumi)
     getCurrentPlayerType() {
-      const isVideo = currentUrl.includes('www.bilibili.com/video') || currentUrl.includes('www.bilibili.com/list/watchlater')
+      const isVideo = currentUrl.includes('www.bilibili.com/video') || currentUrl.includes('www.bilibili.com/list/')
       const isBangumi = currentUrl.includes('www.bilibili.com/bangumi')
       setValue('player_type', isVideo ? 'video' : isBangumi && 'bangumi')
     },
@@ -784,6 +784,10 @@ $(() => {
         .fixed-sidenav-storage-item.locate {
           width:40px!important;
           height:40px!important;
+        }
+        .fixed-header .bili-header__bar{
+          position: absolute!important;
+          inset-inline: 0!important;
         }
       `
       const addStyleToHead = () => {
