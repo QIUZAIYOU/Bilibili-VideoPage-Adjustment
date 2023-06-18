@@ -1,8 +1,8 @@
 // ==UserScript==
-// @name              哔哩哔哩（bilibili.com）播放页调整
+// @name              NEXT-哔哩哔哩（bilibili.com）播放页调整
 // @license           GPL-3.0 License
 // @namespace         https://greasyfork.org/zh-CN/scripts/415804-bilibili%E6%92%AD%E6%94%BE%E9%A1%B5%E8%B0%83%E6%95%B4-%E8%87%AA%E7%94%A8
-// @version           0.18
+// @version           0.19
 // @description       1.自动定位到播放器（进入播放页，可自动定位到播放器，可设置偏移量及是否在点击主播放器时定位）；2.可设置是否自动选择最高画质；3.可设置播放器默认模式；
 // @author            QIAN
 // @match             *://*.bilibili.com/video/*
@@ -56,6 +56,7 @@ $(() => {
     throttle,
     getClientHeight,
     checkElementExistence,
+    isDocumentHidden,
     isLogin,
     logger,
     checkPageReadyState,
@@ -188,6 +189,24 @@ $(() => {
           }
         }, interval)
       })
+    },
+    isDocumentHidden() {
+      const visibilityChangeEventNames = ['visibilitychange', 'mozvisibilitychange', 'webkitvisibilitychange', 'msvisibilitychange'];
+      const documentHiddenPropertyName = visibilityChangeEventNames.find(name => name in document) || 'onfocusin' in document || 'onpageshow' in window ? 'hidden' : null;
+      if (documentHiddenPropertyName !== null) {
+        const isHidden = () => document[documentHiddenPropertyName];
+        const onChange = () => isHidden();
+        // 添加各种事件监听器
+        visibilityChangeEventNames.forEach(eventName => document.addEventListener(eventName, onChange));
+        window.addEventListener('focus', onChange);
+        window.addEventListener('blur', onChange);
+        window.addEventListener('pageshow', onChange);
+        window.addEventListener('pagehide', onChange);
+        document.onfocusin = document.onfocusout = onChange;
+        return isHidden();
+      }
+      // 如果无法判断是否隐藏，则返回undefined
+      return undefined;
     },
     isLogin() {
       return Boolean(document.cookie.replace(new RegExp(String.raw`(?:(?:^|.*;\s*)bili_jct\s*=\s*([^;]*).*$)|^.*$`), '$1') || null)
@@ -1056,6 +1075,15 @@ $(() => {
   }
   if (isLogin()) {
     m.thePrepFunction()
-    m.theMainFunction()
+    const checkDocumentHidden = setInterval(() => {
+      const dicumentHidden = isDocumentHidden()
+      if (!dicumentHidden) {
+        logger.info(`当前标签｜已激活｜开始应用配置`)
+        clearInterval(checkDocumentHidden)
+        m.theMainFunction()
+      } else {
+        logger.info(`当前标签｜未激活｜等待激活`)
+      }
+    }, 100)
   } else logger.warn('请登录｜本脚本只能在登录状态下使用')
 })
