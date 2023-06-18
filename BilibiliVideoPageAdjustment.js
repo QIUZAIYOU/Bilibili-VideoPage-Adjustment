@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name              NEXT-哔哩哔哩（bilibili.com）播放页调整
+// @name              哔哩哔哩（bilibili.com）播放页调整
 // @license           GPL-3.0 License
 // @namespace         https://greasyfork.org/zh-CN/scripts/415804-bilibili%E6%92%AD%E6%94%BE%E9%A1%B5%E8%B0%83%E6%95%B4-%E8%87%AA%E7%94%A8
 // @version           0.19
