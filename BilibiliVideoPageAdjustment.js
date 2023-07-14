@@ -2,7 +2,7 @@
 // @name              哔哩哔哩（bilibili.com）播放页调整
 // @license           GPL-3.0 License
 // @namespace         https://greasyfork.org/zh-CN/scripts/415804-bilibili%E6%92%AD%E6%94%BE%E9%A1%B5%E8%B0%83%E6%95%B4-%E8%87%AA%E7%94%A8
-// @version           0.21
+// @version           0.22
 // @description       1.自动定位到播放器（进入播放页，可自动定位到播放器，可设置偏移量及是否在点击主播放器时定位）；2.可设置是否自动选择最高画质；3.可设置播放器默认模式；
 // @author            QIAN
 // @match             *://*.bilibili.com/video/*
@@ -188,22 +188,22 @@ $(() => {
       })
     },
     isDocumentHidden () {
-      const visibilityChangeEventNames = ['visibilitychange', 'mozvisibilitychange', 'webkitvisibilitychange', 'msvisibilitychange'];
-      const documentHiddenPropertyName = visibilityChangeEventNames.find(name => name in document) || 'onfocusin' in document || 'onpageshow' in window ? 'hidden' : null;
+      const visibilityChangeEventNames = ['visibilitychange', 'mozvisibilitychange', 'webkitvisibilitychange', 'msvisibilitychange']
+      const documentHiddenPropertyName = visibilityChangeEventNames.find(name => name in document) || 'onfocusin' in document || 'onpageshow' in window ? 'hidden' : null
       if (documentHiddenPropertyName !== null) {
-        const isHidden = () => document[documentHiddenPropertyName];
-        const onChange = () => isHidden();
+        const isHidden = () => document[documentHiddenPropertyName]
+        const onChange = () => isHidden()
         // 添加各种事件监听器
-        visibilityChangeEventNames.forEach(eventName => document.addEventListener(eventName, onChange));
-        window.addEventListener('focus', onChange);
-        window.addEventListener('blur', onChange);
-        window.addEventListener('pageshow', onChange);
-        window.addEventListener('pagehide', onChange);
-        document.onfocusin = document.onfocusout = onChange;
-        return isHidden();
+        visibilityChangeEventNames.forEach(eventName => document.addEventListener(eventName, onChange))
+        window.addEventListener('focus', onChange)
+        window.addEventListener('blur', onChange)
+        window.addEventListener('pageshow', onChange)
+        window.addEventListener('pagehide', onChange)
+        document.onfocusin = document.onfocusout = onChange
+        return isHidden()
       }
       // 如果无法判断是否隐藏，则返回undefined
-      return undefined;
+      return undefined
     },
     isLogin () {
       return Boolean(document.cookie.replace(new RegExp(String.raw`(?:(?:^|.*;\s*)bili_jct\s*=\s*([^;]*).*$)|^.*$`), '$1') || null)
@@ -226,11 +226,11 @@ $(() => {
       return new Promise((resolve) => {
         const timer = setInterval(() => {
           if (document.readyState === state) {
-            clearInterval(timer);
-            resolve(true);
+            clearInterval(timer)
+            resolve(true)
           }
-        }, 100);
-      });
+        }, 100)
+      })
     },
     pageReload () {
       // location.reload(true)
@@ -408,8 +408,8 @@ $(() => {
     autoSelectScreenMode () {
       autoSelectScreenModeTimes++
       if (autoSelectScreenModeTimes === 1) {
-        const $wideEnterBtn = player_type === 'video' ? document.querySelector('.bpx-player-ctrl-wide-enter') : document.querySelector('.squirtle-widescreen-inactive');
-        const $webEnterBtn = player_type === 'video' ? document.querySelector('.bpx-player-ctrl-web-enter') : document.querySelector('.squirtle-pagefullscreen-inactive');
+        const $wideEnterBtn = player_type === 'video' ? document.querySelector('.bpx-player-ctrl-wide-enter') : document.querySelector('.squirtle-widescreen-inactive')
+        const $webEnterBtn = player_type === 'video' ? document.querySelector('.bpx-player-ctrl-web-enter') : document.querySelector('.squirtle-pagefullscreen-inactive')
         const selectModeBtn = selected_screen_mode === 'wide' ? $wideEnterBtn : $webEnterBtn
         const expect_mode = selected_screen_mode === 'wide' ? 'wide' : 'web'
         let attempts = 50
@@ -500,7 +500,7 @@ $(() => {
     insertGoToCommentsButton () {
       insertGoToCommentsButtonTimes++
       if (player_type === 'video' && webfull_unlock && insertGoToCommentsButtonTimes === 1) {
-        const goToCommentsBtnHtml = `<div class="bpx-player-ctrl-btn bpx-player-ctrl-comment" role="button" aria-label="前往评论" tabindex="0"><div id="goToComments" class="bpx-player-ctrl-btn-icon"><span class="bpx-common-svg-icon"><svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="88" height="88" preserveAspectRatio="xMidYMid meet" style="width: 100%; height: 100%; transform: translate3d(0px, 0px, 0px);"><path d="M512 85.333c235.637 0 426.667 191.03 426.667 426.667S747.637 938.667 512 938.667a424.779 424.779 0 0 1-219.125-60.502A2786.56 2786.56 0 0 0 272.82 866.4l-104.405 28.48c-23.893 6.507-45.803-15.413-39.285-39.296l28.437-104.288c-11.008-18.688-18.219-31.221-21.803-37.91A424.885 424.885 0 0 1 85.333 512c0-235.637 191.03-426.667 426.667-426.667zm-102.219 549.76a32 32 0 1 0-40.917 49.216A223.179 223.179 0 0 0 512 736c52.97 0 103.19-18.485 143.104-51.67a32 32 0 1 0-40.907-49.215A159.19 159.19 0 0 1 512 672a159.19 159.19 0 0 1-102.219-36.907z" fill="#currentColor"/></svg></span></div></div>`
+        const goToCommentsBtnHtml = '<div class="bpx-player-ctrl-btn bpx-player-ctrl-comment" role="button" aria-label="前往评论" tabindex="0"><div id="goToComments" class="bpx-player-ctrl-btn-icon"><span class="bpx-common-svg-icon"><svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="88" height="88" preserveAspectRatio="xMidYMid meet" style="width: 100%; height: 100%; transform: translate3d(0px, 0px, 0px);"><path d="M512 85.333c235.637 0 426.667 191.03 426.667 426.667S747.637 938.667 512 938.667a424.779 424.779 0 0 1-219.125-60.502A2786.56 2786.56 0 0 0 272.82 866.4l-104.405 28.48c-23.893 6.507-45.803-15.413-39.285-39.296l28.437-104.288c-11.008-18.688-18.219-31.221-21.803-37.91A424.885 424.885 0 0 1 85.333 512c0-235.637 191.03-426.667 426.667-426.667zm-102.219 549.76a32 32 0 1 0-40.917 49.216A223.179 223.179 0 0 0 512 736c52.97 0 103.19-18.485 143.104-51.67a32 32 0 1 0-40.907-49.215A159.19 159.19 0 0 1 512 672a159.19 159.19 0 0 1-102.219-36.907z" fill="#currentColor"/></svg></span></div></div>'
         $('.bpx-player-control-bottom-right').append(goToCommentsBtnHtml)
         $('#goToComments').on('click', function (event) {
           event.stopPropagation()
@@ -513,12 +513,12 @@ $(() => {
     async insertBackToPlayerButton () {
       const playerDataScreen = await this.getCurrentScreenMode()
       if (player_type === 'video') {
-        const locateButtonHtml = `<div class="fixed-sidenav-storage-item locate" title="定位至播放器">\n<svg t="1643419779790" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1775" width="200" height="200" style="width: 50%;height: 100%;fill: currentColor;"><path d="M512 352c-88.008 0-160.002 72-160.002 160 0 88.008 71.994 160 160.002 160 88.01 0 159.998-71.992 159.998-160 0-88-71.988-160-159.998-160z m381.876 117.334c-19.21-177.062-162.148-320-339.21-339.198V64h-85.332v66.134c-177.062 19.198-320 162.136-339.208 339.198H64v85.334h66.124c19.208 177.062 162.144 320 339.208 339.208V960h85.332v-66.124c177.062-19.208 320-162.146 339.21-339.208H960v-85.334h-66.124zM512 810.666c-164.274 0-298.668-134.396-298.668-298.666 0-164.272 134.394-298.666 298.668-298.666 164.27 0 298.664 134.396 298.664 298.666S676.27 810.666 512 810.666z" p-id="1776"></path></svg></div>`
+        const locateButtonHtml = '<div class="fixed-sidenav-storage-item locate" title="定位至播放器">\n<svg t="1643419779790" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1775" width="200" height="200" style="width: 50%;height: 100%;fill: currentColor;"><path d="M512 352c-88.008 0-160.002 72-160.002 160 0 88.008 71.994 160 160.002 160 88.01 0 159.998-71.992 159.998-160 0-88-71.988-160-159.998-160z m381.876 117.334c-19.21-177.062-162.148-320-339.21-339.198V64h-85.332v66.134c-177.062 19.198-320 162.136-339.208 339.198H64v85.334h66.124c19.208 177.062 162.144 320 339.208 339.208V960h85.332v-66.124c177.062-19.208 320-162.146 339.21-339.208H960v-85.334h-66.124zM512 810.666c-164.274 0-298.668-134.396-298.668-298.666 0-164.272 134.394-298.666 298.668-298.666 164.27 0 298.664 134.396 298.664 298.666S676.27 810.666 512 810.666z" p-id="1776"></path></svg></div>'
         const floatNav = $('.fixed-sidenav-storage .back-to-top-wrap')
         const locateButton = $('.storable-items .fixed-sidenav-storage-item.locate')
         // $('.fixed-sidenav-storage').css('bottom', '274px')
         const dataV = floatNav[0].attributes[1].name
-        const locateButtonHtmlDataV = locateButtonHtml.replace(`title="定位至播放器"`, `title="定位至播放器" ${dataV}`)
+        const locateButtonHtmlDataV = locateButtonHtml.replace('title="定位至播放器"', `title="定位至播放器" ${dataV}`)
         floatNav.prepend(locateButtonHtmlDataV)
         locateButton.not(':first-child').remove()
         floatNav.on('click', '.locate', function () {
@@ -526,7 +526,7 @@ $(() => {
         })
       }
       if (player_type === 'bangumi') {
-        const locateButtonHtml = `<div class="tool-item locate" title="定位至播放器">\n<svg t="1643419779790" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1775" width="200" height="200" style="width: 50%;height: 100%;fill: currentColor;"><path d="M512 352c-88.008 0-160.002 72-160.002 160 0 88.008 71.994 160 160.002 160 88.01 0 159.998-71.992 159.998-160 0-88-71.988-160-159.998-160z m381.876 117.334c-19.21-177.062-162.148-320-339.21-339.198V64h-85.332v66.134c-177.062 19.198-320 162.136-339.208 339.198H64v85.334h66.124c19.208 177.062 162.144 320 339.208 339.208V960h85.332v-66.124c177.062-19.208 320-162.146 339.21-339.208H960v-85.334h-66.124zM512 810.666c-164.274 0-298.668-134.396-298.668-298.666 0-164.272 134.394-298.666 298.668-298.666 164.27 0 298.664 134.396 298.664 298.666S676.27 810.666 512 810.666z" p-id="1776"></path></svg></div>`
+        const locateButtonHtml = '<div class="tool-item locate" title="定位至播放器">\n<svg t="1643419779790" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1775" width="200" height="200" style="width: 50%;height: 100%;fill: currentColor;"><path d="M512 352c-88.008 0-160.002 72-160.002 160 0 88.008 71.994 160 160.002 160 88.01 0 159.998-71.992 159.998-160 0-88-71.988-160-159.998-160z m381.876 117.334c-19.21-177.062-162.148-320-339.21-339.198V64h-85.332v66.134c-177.062 19.198-320 162.136-339.208 339.198H64v85.334h66.124c19.208 177.062 162.144 320 339.208 339.208V960h85.332v-66.124c177.062-19.208 320-162.146 339.21-339.208H960v-85.334h-66.124zM512 810.666c-164.274 0-298.668-134.396-298.668-298.666 0-164.272 134.394-298.666 298.668-298.666 164.27 0 298.664 134.396 298.664 298.666S676.27 810.666 512 810.666z" p-id="1776"></path></svg></div>'
         const floatNav = $('.nav-tools')
         const locateButton = $('.nav-tools .tool-item.locate')
         floatNav.prepend(locateButtonHtml)
@@ -574,17 +574,17 @@ $(() => {
     },
     // 点击播放器自动定位至播放器
     async clickPlayerAutoLocation () {
-      const playerDataScreen = await this.getCurrentScreenMode();
+      const playerDataScreen = await this.getCurrentScreenMode()
       if (click_player_auto_locate) {
-        $('#bilibili-player').on('click', handleClick);
+        $('#bilibili-player').on('click', handleClick)
 
         function handleClick (event) {
-          event.stopPropagation();
+          event.stopPropagation()
           if ($(this).attr('status') === 'adjustment-mini') {
-            logger.info('点击迷你播放器');
+            logger.info('点击迷你播放器')
           } else {
-            const scrollTop = playerDataScreen !== 'web' ? player_offset_top - offset_top : 0;
-            $('html,body').scrollTop(scrollTop);
+            const scrollTop = playerDataScreen !== 'web' ? player_offset_top - offset_top : 0
+            $('html,body').scrollTop(scrollTop)
           }
         }
       }
@@ -621,65 +621,65 @@ $(() => {
     },
     // 自动选择最高画质
     autoSelectVideoHightestQuality () {
-      autoSelectVideoHightestQualityTimes++;
-      if (!auto_select_video_highest_quality) return;
+      autoSelectVideoHightestQualityTimes++
+      if (!auto_select_video_highest_quality) return
       if (autoSelectVideoHightestQualityTimes === 1) {
-        let qualityValue, message;
+        let qualityValue, message
         switch (player_type) {
           case 'video':
             if (is_vip) {
               if (!contain_quality_4k && !contain_quality_8k) {
                 qualityValue = $('.bpx-player-ctrl-quality > ul > li').filter(function () {
-                  const qualityText = $(this).children('span.bpx-player-ctrl-quality-text').text();
+                  const qualityText = $(this).children('span.bpx-player-ctrl-quality-text').text()
                   return (!qualityText.includes('4K') && !qualityText.includes('8K'))
-                });
-                message = '最高画质｜VIP｜不包含4K及8K｜切换成功';
+                })
+                message = '最高画质｜VIP｜不包含4K及8K｜切换成功'
               } else if (contain_quality_4k && contain_quality_8k) {
                 qualityValue = $('.bpx-player-ctrl-quality > ul > li').filter(function () {
                   return $(this).children('span.bpx-player-ctrl-quality-text').text().includes('8K')
-                });
-                message = '最高画质｜VIP｜8K｜切换成功';
+                })
+                message = '最高画质｜VIP｜8K｜切换成功'
               } else if (contain_quality_4k && !contain_quality_8k) {
                 qualityValue = $('.bpx-player-ctrl-quality > ul > li').filter(function () {
                   return $(this).children('span.bpx-player-ctrl-quality-text').text().includes('4K')
-                });
-                message = '最高画质｜VIP｜4K｜切换成功';
+                })
+                message = '最高画质｜VIP｜4K｜切换成功'
               } else if (!contain_quality_4k && contain_quality_8k) {
                 qualityValue = $('.bpx-player-ctrl-quality > ul > li').filter(function () {
                   return $(this).children('span.bpx-player-ctrl-quality-text').text().includes('8K')
-                });
-                message = '最高画质｜VIP｜8K｜切换成功';
+                })
+                message = '最高画质｜VIP｜8K｜切换成功'
               }
-              qualityValue.eq(0).click();
+              qualityValue.eq(0).click()
             } else {
-              const selectVipItemLength = $('.bpx-player-ctrl-quality > ul > li').children('.bpx-player-ctrl-quality-badge-bigvip').length;
-              $('.bpx-player-ctrl-quality > ul > li').eq(selectVipItemLength).click();
-              message = '最高画质｜非VIP｜切换成功';
+              const selectVipItemLength = $('.bpx-player-ctrl-quality > ul > li').children('.bpx-player-ctrl-quality-badge-bigvip').length
+              $('.bpx-player-ctrl-quality > ul > li').eq(selectVipItemLength).click()
+              message = '最高画质｜非VIP｜切换成功'
             }
-            break;
+            break
           case 'bangumi':
             if (is_vip) {
               if (contain_quality_4k) {
-                $('.squirtle-quality-wrap >.squirtle-video-quality > ul > li').eq(0).click();
-                message = '最高画质｜VIP｜包含4K｜切换成功';
+                $('.squirtle-quality-wrap >.squirtle-video-quality > ul > li').eq(0).click()
+                message = '最高画质｜VIP｜包含4K｜切换成功'
               } else {
                 qualityValue = $('.squirtle-quality-wrap > .squirtle-video-quality > ul > li').filter(function () {
-                  const qualityText = $(this).children('.squirtle-quality-text-c').children('.squirtle-quality-text').text();
+                  const qualityText = $(this).children('.squirtle-quality-text-c').children('.squirtle-quality-text').text()
                   return (!qualityText.includes('4K') && !qualityText.includes('8K'))
-                });
+                })
                 qualityValue.eq(0).click()
-                message = '最高画质｜VIP｜不包含4K｜切换成功';
+                message = '最高画质｜VIP｜不包含4K｜切换成功'
               }
             } else {
-              const selectVipItemLength = $('.squirtle-quality-wrap >.squirtle-video-quality > ul > li').children('.squirtle-bigvip').length;
-              $('.squirtle-quality-wrap >.squirtle-video-quality > ul > li').eq(selectVipItemLength).click();
-              message = '最高画质｜非VIP｜切换成功';
+              const selectVipItemLength = $('.squirtle-quality-wrap >.squirtle-video-quality > ul > li').children('.squirtle-bigvip').length
+              $('.squirtle-quality-wrap >.squirtle-video-quality > ul > li').eq(selectVipItemLength).click()
+              message = '最高画质｜非VIP｜切换成功'
             }
-            break;
+            break
           default:
-            break;
+            break
         }
-        logger.info(message);
+        logger.info(message)
       }
     },
     // 添加样式文件
@@ -998,7 +998,7 @@ $(() => {
         if (theMainFunctionRunningTimes === 1) {
           const videoPlayerExists = await checkElementExistence('#bilibili-player video', 5, 100) || await checkElementExistence('bwp-video', 5, 100)
           if (videoPlayerExists) {
-            logger.info(`播放器｜存在`)
+            logger.info('播放器｜存在')
             $('body').css('overflow', 'hidden')
             const isPlayable = await this.checkVideoCanPlayThrough()
             // console.time('播放页调整：判断按钮出现')
@@ -1006,7 +1006,7 @@ $(() => {
             // console.timeEnd('播放页调整：判断按钮出现')
             // const pageComplete = await checkPageReadyState('complete')
             if (isPlayable || (!isPlayable && screenModeBtnExists)) {
-              logger.info(`视频资源｜可以播放`)
+              logger.info('视频资源｜可以播放')
               // console.time('播放页调整：切换模式耗时')
               this.watchScreenModeChange()
               await sleep(100)
@@ -1029,19 +1029,19 @@ $(() => {
                 // console.timeEnd('播放页调整：自动定位耗时')
                 if (auto_locate && autoLocationDone) {
                   $('body').css('overflow', '')
-                  logger.info(`自动定位｜成功`)
+                  logger.info('自动定位｜成功')
                   this.insertBackToPlayerButton()
                   this.jumpVideoTime()
                 }
                 if (!auto_locate || (auto_locate && auto_locate_bangumi && !auto_locate_video && player_type === 'video') || (auto_locate && auto_locate_video && !auto_locate_bangumi && player_type === 'bangumi')) {
                   $('body').css('overflow', '')
-                  logger.info(`自动定位｜未开启`)
+                  logger.info('自动定位｜未开启')
                 }
                 if (player_type === 'video') {
                   const loaded = await checkElementExistence('#comment > .comment > .bili-comment', 10, 100)
                   await sleep(100)
                   if (loaded) {
-                    logger.info(`页面加载｜完毕`)
+                    logger.info('页面加载｜完毕')
                   } else {
                     pageReload()
                   }
@@ -1051,11 +1051,11 @@ $(() => {
                 pageReload()
               }
             } else {
-              logger.error(`视频资源｜加载失败`)
+              logger.error('视频资源｜加载失败')
               pageReload()
             }
           } else {
-            logger.error(`播放器｜不存在`)
+            logger.error('播放器｜不存在')
             pageReload()
           }
         }
@@ -1070,11 +1070,11 @@ $(() => {
     const checkDocumentHidden = setInterval(() => {
       const dicumentHidden = isDocumentHidden()
       if (!dicumentHidden) {
-        logger.info(`当前标签｜已激活｜开始应用配置`)
+        logger.info('当前标签｜已激活｜开始应用配置')
         clearInterval(checkDocumentHidden)
         m.theMainFunction()
       } else {
-        logger.info(`当前标签｜未激活｜等待激活`)
+        logger.info('当前标签｜未激活｜等待激活')
       }
     }, 100)
   } else logger.warn('请登录｜本脚本只能在登录状态下使用')
