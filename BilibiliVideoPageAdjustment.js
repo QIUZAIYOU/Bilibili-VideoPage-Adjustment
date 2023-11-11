@@ -2,7 +2,7 @@
 // @name              哔哩哔哩（bilibili.com）播放页调整
 // @license           GPL-3.0 License
 // @namespace         https://greasyfork.org/zh-CN/scripts/415804-bilibili%E6%92%AD%E6%94%BE%E9%A1%B5%E8%B0%83%E6%95%B4-%E8%87%AA%E7%94%A8
-// @version           0.23
+// @version           0.24
 // @description       1.自动定位到播放器（进入播放页，可自动定位到播放器，可设置偏移量及是否在点击主播放器时定位）；2.可设置是否自动选择最高画质；3.可设置播放器默认模式；
 // @author            QIAN
 // @match             *://*.bilibili.com/video/*
@@ -408,8 +408,8 @@ $(() => {
     autoSelectScreenMode () {
       autoSelectScreenModeTimes++
       if (autoSelectScreenModeTimes === 1) {
-        const $wideEnterBtn = player_type === 'video' ? document.querySelector('.bpx-player-ctrl-wide-enter') : document.querySelector('.squirtle-widescreen-inactive')
-        const $webEnterBtn = player_type === 'video' ? document.querySelector('.bpx-player-ctrl-web-enter') : document.querySelector('.squirtle-pagefullscreen-inactive')
+        const $wideEnterBtn = player_type === 'video' ? document.querySelector('.bpx-player-ctrl-wide-enter') : document.querySelector('.squirtle-video-widescreen')
+        const $webEnterBtn = player_type === 'video' ? document.querySelector('.bpx-player-ctrl-web-enter') : document.querySelector('.squirtle-video-pagefullscreen')
         const selectModeBtn = selected_screen_mode === 'wide' ? $wideEnterBtn : $webEnterBtn
         const expect_mode = selected_screen_mode === 'wide' ? 'wide' : 'web'
         let attempts = 50
@@ -577,7 +577,6 @@ $(() => {
       const playerDataScreen = await this.getCurrentScreenMode()
       if (click_player_auto_locate) {
         $('#bilibili-player').on('click', handleClick)
-
         function handleClick (event) {
           event.stopPropagation()
           if ($(this).attr('status') === 'adjustment-mini') {
@@ -590,16 +589,18 @@ $(() => {
       }
     },
     // 点击时间锚点自动返回播放器
-    jumpVideoTime () {
-      const video = $('#bilibili-player video')[0]
+    async jumpVideoTime () {
+      const playerDataScreen = await this.getCurrentScreenMode()
       const clickTarget = player_type === 'video' ? '#comment' : '#comment_module'
       const $clickTarget = $(clickTarget)
+      const scrollTop = playerDataScreen !== 'web' ? player_offset_top - offset_top : 0
       $clickTarget.unbind('click').on('click', '.video-time,.video-seek', function (event) {
         event.stopPropagation()
+        $('html,body').scrollTop(scrollTop)
         const targetTime = $(this).attr(player_type === 'video' ? 'data-video-time' : 'data-time')
+        const video = $('bwp-video')
         video.currentTime = targetTime
         video.play()
-        $('html,body').scrollTop(selected_screen_mode === 'web' ? 0 : player_offset_top - offset_top)
       })
     },
     // 自动取消静音
