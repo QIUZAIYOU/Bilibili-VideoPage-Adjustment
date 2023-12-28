@@ -2,7 +2,7 @@
 // @name              哔哩哔哩（bilibili.com）播放页调整
 // @license           GPL-3.0 License
 // @namespace         https://greasyfork.org/zh-CN/scripts/415804-bilibili%E6%92%AD%E6%94%BE%E9%A1%B5%E8%B0%83%E6%95%B4-%E8%87%AA%E7%94%A8
-// @version           0.26
+// @version           0.27
 // @description       1.自动定位到播放器（进入播放页，可自动定位到播放器，可设置偏移量及是否在点击主播放器时定位）；2.可设置是否自动选择最高画质；3.可设置播放器默认模式；
 // @author            QIAN
 // @match             *://*.bilibili.com/video/*
@@ -20,6 +20,8 @@
 // @supportURL        https://github.com/QIUZAIYOU/Bilibili-VideoPage-Adjustment
 // @homepageURL       https://github.com/QIUZAIYOU/Bilibili-VideoPage-Adjustment
 // @icon              https://www.bilibili.com/favicon.ico?v=1
+// @downloadURL https://update.greasyfork.org/scripts/415804/%E5%93%94%E5%93%A9%E5%93%94%E5%93%A9%EF%BC%88bilibilicom%EF%BC%89%E6%92%AD%E6%94%BE%E9%A1%B5%E8%B0%83%E6%95%B4.user.js
+// @updateURL https://update.greasyfork.org/scripts/415804/%E5%93%94%E5%93%A9%E5%93%94%E5%93%A9%EF%BC%88bilibilicom%EF%BC%89%E6%92%AD%E6%94%BE%E9%A1%B5%E8%B0%83%E6%95%B4.meta.js
 // ==/UserScript==
 $(() => {
   'use strict'
@@ -408,9 +410,9 @@ $(() => {
     autoSelectScreenMode () {
       autoSelectScreenModeTimes++
       if (autoSelectScreenModeTimes === 1) {
-        const $wideEnterBtn = player_type === 'video' ? document.querySelector('.bpx-player-ctrl-wide-enter') : document.querySelector('.squirtle-video-widescreen')
-        const $webEnterBtn = player_type === 'video' ? document.querySelector('.bpx-player-ctrl-web-enter') : document.querySelector('.squirtle-video-pagefullscreen')
-        const selectModeBtn = selected_screen_mode === 'wide' ? $wideEnterBtn : $webEnterBtn
+        const wideEnterBtn = document.querySelector('.bpx-player-ctrl-wide-enter')
+        const webEnterBtn = document.querySelector('.bpx-player-ctrl-web-enter')
+        const selectModeBtn = selected_screen_mode === 'wide' ? wideEnterBtn : webEnterBtn
         const expect_mode = selected_screen_mode === 'wide' ? 'wide' : 'web'
         let attempts = 50
         selectModeBtn.click()
@@ -577,26 +579,28 @@ $(() => {
     },
     // 点击播放器自动定位至播放器
     async clickPlayerAutoLocation () {
-      const playerDataScreen = await this.getCurrentScreenMode()
       if (click_player_auto_locate) {
+        const $player = $('#bilibili-player')
+        const player_offset_top = Math.trunc($player.offset().top)
         $('#bilibili-player').on('click', handleClick)
         function handleClick (event) {
           event.stopPropagation()
-          if ($(this).attr('status') === 'adjustment-mini') {
-            logger.info('点击迷你播放器')
-          } else {
-            const scrollTop = playerDataScreen !== 'web' ? player_offset_top - offset_top : 0
-            $('html,body').scrollTop(scrollTop)
+          // logger.info(`1:${player_offset_top}, 2:${offset_top}, 3:${player_offset_top - offset_top}`)
+          const scrollToPlayer = () => {
+            $('html,body').scrollTop(player_offset_top - offset_top)
           }
+          scrollToPlayer()
         }
       }
     },
     // 点击时间锚点自动返回播放器
     async jumpVideoTime () {
-      const playerDataScreen = await this.getCurrentScreenMode()
       const clickTarget = player_type === 'video' ? '#comment' : '#comment_module'
       const $clickTarget = $(clickTarget)
-      const scrollTop = playerDataScreen !== 'web' ? player_offset_top - offset_top : 0
+      const scrollToPlayer = () => {
+        $('html,body').scrollTop(player_offset_top - offset_top)
+      }
+      scrollToPlayer()
       $clickTarget.unbind('click').on('click', '.video-time,.video-seek', function (event) {
         event.stopPropagation()
         $('html,body').scrollTop(scrollTop)
@@ -609,15 +613,11 @@ $(() => {
     // 自动取消静音
     autoCancelMute () {
       autoCancelMuteTimes++
-      const cancelMuteButtn = player_type === 'video' ? $('.bpx-player-ctrl-muted-icon') : $('.squirtle-volume-wrap .squirtle-volume .squirtle-volume-icon')
+      const cancelMuteButtn = $('.bpx-player-ctrl-muted-icon')
       const cancelMuteButtnDisplay = cancelMuteButtn.css('display')
       const cancelMuteButtnClass = cancelMuteButtn.attr('class')
       if (autoCancelMuteTimes === 1) {
-        if (player_type === 'video' && cancelMuteButtnDisplay === 'block') {
-          cancelMuteButtn.click()
-          logger.info('已自动取消静音')
-        }
-        if (player_type === 'bangumi' && cancelMuteButtnClass.includes('squirtle-volume-mute-state')) {
+        if (cancelMuteButtnDisplay === 'block') {
           cancelMuteButtn.click()
           logger.info('已自动取消静音')
         }
@@ -629,59 +629,34 @@ $(() => {
       if (!auto_select_video_highest_quality) return
       if (autoSelectVideoHightestQualityTimes === 1) {
         let qualityValue, message
-        switch (player_type) {
-          case 'video':
-            if (is_vip) {
-              if (!contain_quality_4k && !contain_quality_8k) {
-                qualityValue = $('.bpx-player-ctrl-quality > ul > li').filter(function () {
-                  const qualityText = $(this).children('span.bpx-player-ctrl-quality-text').text()
-                  return (!qualityText.includes('4K') && !qualityText.includes('8K'))
-                })
-                message = '最高画质｜VIP｜不包含4K及8K｜切换成功'
-              } else if (contain_quality_4k && contain_quality_8k) {
-                qualityValue = $('.bpx-player-ctrl-quality > ul > li').filter(function () {
-                  return $(this).children('span.bpx-player-ctrl-quality-text').text().includes('8K')
-                })
-                message = '最高画质｜VIP｜8K｜切换成功'
-              } else if (contain_quality_4k && !contain_quality_8k) {
-                qualityValue = $('.bpx-player-ctrl-quality > ul > li').filter(function () {
-                  return $(this).children('span.bpx-player-ctrl-quality-text').text().includes('4K')
-                })
-                message = '最高画质｜VIP｜4K｜切换成功'
-              } else if (!contain_quality_4k && contain_quality_8k) {
-                qualityValue = $('.bpx-player-ctrl-quality > ul > li').filter(function () {
-                  return $(this).children('span.bpx-player-ctrl-quality-text').text().includes('8K')
-                })
-                message = '最高画质｜VIP｜8K｜切换成功'
-              }
-              qualityValue.eq(0).click()
-            } else {
-              const selectVipItemLength = $('.bpx-player-ctrl-quality > ul > li').children('.bpx-player-ctrl-quality-badge-bigvip').length
-              $('.bpx-player-ctrl-quality > ul > li').eq(selectVipItemLength).click()
-              message = '最高画质｜非VIP｜切换成功'
-            }
-            break
-          case 'bangumi':
-            if (is_vip) {
-              if (contain_quality_4k) {
-                $('.squirtle-quality-wrap >.squirtle-video-quality > ul > li').eq(0).click()
-                message = '最高画质｜VIP｜包含4K｜切换成功'
-              } else {
-                qualityValue = $('.squirtle-quality-wrap > .squirtle-video-quality > ul > li').filter(function () {
-                  const qualityText = $(this).children('.squirtle-quality-text-c').children('.squirtle-quality-text').text()
-                  return (!qualityText.includes('4K') && !qualityText.includes('8K'))
-                })
-                qualityValue.eq(0).click()
-                message = '最高画质｜VIP｜不包含4K｜切换成功'
-              }
-            } else {
-              const selectVipItemLength = $('.squirtle-quality-wrap >.squirtle-video-quality > ul > li').children('.squirtle-bigvip').length
-              $('.squirtle-quality-wrap >.squirtle-video-quality > ul > li').eq(selectVipItemLength).click()
-              message = '最高画质｜非VIP｜切换成功'
-            }
-            break
-          default:
-            break
+        if (is_vip) {
+          if (!contain_quality_4k && !contain_quality_8k) {
+            qualityValue = $('.bpx-player-ctrl-quality > ul > li').filter(function () {
+              const qualityText = $(this).children('span.bpx-player-ctrl-quality-text').text()
+              return (!qualityText.includes('4K') && !qualityText.includes('8K'))
+            })
+            message = '最高画质｜VIP｜不包含4K及8K｜切换成功'
+          } else if (contain_quality_4k && contain_quality_8k) {
+            qualityValue = $('.bpx-player-ctrl-quality > ul > li').filter(function () {
+              return $(this).children('span.bpx-player-ctrl-quality-text').text().includes('8K')
+            })
+            message = '最高画质｜VIP｜8K｜切换成功'
+          } else if (contain_quality_4k && !contain_quality_8k) {
+            qualityValue = $('.bpx-player-ctrl-quality > ul > li').filter(function () {
+              return $(this).children('span.bpx-player-ctrl-quality-text').text().includes('4K')
+            })
+            message = '最高画质｜VIP｜4K｜切换成功'
+          } else if (!contain_quality_4k && contain_quality_8k) {
+            qualityValue = $('.bpx-player-ctrl-quality > ul > li').filter(function () {
+              return $(this).children('span.bpx-player-ctrl-quality-text').text().includes('8K')
+            })
+            message = '最高画质｜VIP｜8K｜切换成功'
+          }
+          qualityValue.eq(0).click()
+        } else {
+          const selectVipItemLength = $('.bpx-player-ctrl-quality > ul > li').children('.bpx-player-ctrl-quality-badge-bigvip').length
+          $('.bpx-player-ctrl-quality > ul > li').eq(selectVipItemLength).click()
+          message = '最高画质｜非VIP｜切换成功'
         }
         logger.info(message)
       }
@@ -1009,7 +984,7 @@ $(() => {
             $('body').css('overflow', 'hidden')
             const isPlayable = await this.checkVideoCanPlayThrough()
             // console.time('播放页调整：判断按钮出现')
-            const screenModeBtnExists = player_type === 'video' ? await checkElementExistence('#bilibili-player .bpx-player-ctrl-btn', 100, 100) : await checkElementExistence('#bilibili-player .squirtle-video-item', 100, 100)
+            const screenModeBtnExists = await checkElementExistence('#bilibili-player .bpx-player-ctrl-btn', 100, 100)
             // console.timeEnd('播放页调整：判断按钮出现')
             // const pageComplete = await checkPageReadyState('complete')
             if (isPlayable || (!isPlayable && screenModeBtnExists)) {
