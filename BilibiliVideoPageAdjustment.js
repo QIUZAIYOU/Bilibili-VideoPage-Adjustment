@@ -413,9 +413,9 @@ $(() => {
     },
     // 自动选择屏幕模式
     async autoSelectScreenMode () {
-      // const current_screen_mode = await this.getCurrentScreenMode()
-      // if (current_screen_mode === 'wide') return { done: true, mode: selected_screen_mode}
-      // if (current_screen_mode === 'web') return { done: true, mode: selected_screen_mode}
+      const current_screen_mode = await this.getCurrentScreenMode()
+      if (current_screen_mode === 'wide') return { done: true, mode: selected_screen_mode}
+      if (current_screen_mode === 'web') return { done: true, mode: selected_screen_mode}
       autoSelectScreenModeTimes++
       if (autoSelectScreenModeTimes === 1) {
         const wideEnterBtn = document.querySelector('.bpx-player-ctrl-wide-enter')
