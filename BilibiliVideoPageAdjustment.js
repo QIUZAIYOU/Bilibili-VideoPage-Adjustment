@@ -2,7 +2,7 @@
 // @name              哔哩哔哩（bilibili.com）播放页调整
 // @license           GPL-3.0 License
 // @namespace         https://greasyfork.org/zh-CN/scripts/415804-bilibili%E6%92%AD%E6%94%BE%E9%A1%B5%E8%B0%83%E6%95%B4-%E8%87%AA%E7%94%A8
-// @version           0.28
+// @version           0.29
 // @description       1.自动定位到播放器（进入播放页，可自动定位到播放器，可设置偏移量及是否在点击主播放器时定位）；2.可设置是否自动选择最高画质；3.可设置播放器默认模式；
 // @author            QIAN
 // @match             *://*.bilibili.com/video/*
@@ -316,7 +316,7 @@ $(() => {
       }, {
         name: 'webfull_unlock',
         value: false,
-      },{
+      }, {
         name: 'auto_reload',
         value: false,
       }]
@@ -414,8 +414,8 @@ $(() => {
     // 自动选择屏幕模式
     async autoSelectScreenMode () {
       const current_screen_mode = await this.getCurrentScreenMode()
-      if (current_screen_mode === 'wide') return { done: true, mode: selected_screen_mode}
-      if (current_screen_mode === 'web') return { done: true, mode: selected_screen_mode}
+      if (current_screen_mode === 'wide') return { done: true, mode: selected_screen_mode }
+      if (current_screen_mode === 'web') return { done: true, mode: selected_screen_mode }
       autoSelectScreenModeTimes++
       if (autoSelectScreenModeTimes === 1) {
         const wideEnterBtn = document.querySelector('.bpx-player-ctrl-wide-enter')
@@ -525,21 +525,22 @@ $(() => {
       if (player_type === 'video') {
         const locateButtonHtml = '<div class="fixed-sidenav-storage-item locate" title="定位至播放器">\n<svg t="1643419779790" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1775" width="200" height="200" style="width: 50%;height: 100%;fill: currentColor;"><path d="M512 352c-88.008 0-160.002 72-160.002 160 0 88.008 71.994 160 160.002 160 88.01 0 159.998-71.992 159.998-160 0-88-71.988-160-159.998-160z m381.876 117.334c-19.21-177.062-162.148-320-339.21-339.198V64h-85.332v66.134c-177.062 19.198-320 162.136-339.208 339.198H64v85.334h66.124c19.208 177.062 162.144 320 339.208 339.208V960h85.332v-66.124c177.062-19.208 320-162.146 339.21-339.208H960v-85.334h-66.124zM512 810.666c-164.274 0-298.668-134.396-298.668-298.666 0-164.272 134.394-298.666 298.668-298.666 164.27 0 298.664 134.396 298.664 298.666S676.27 810.666 512 810.666z" p-id="1776"></path></svg></div>'
         const floatNav = $('.fixed-sidenav-storage .back-to-top-wrap')
-        const locateButton = $('.storable-items .fixed-sidenav-storage-item.locate')
         // $('.fixed-sidenav-storage').css('bottom', '274px')
         const dataV = floatNav[0].attributes[1].name
         const locateButtonHtmlDataV = locateButtonHtml.replace('title="定位至播放器"', `title="定位至播放器" ${dataV}`)
         floatNav.prepend(locateButtonHtmlDataV)
+        const locateButton = $('.storable-items .fixed-sidenav-storage-item.locate')
         locateButton.not(':first-child').remove()
         floatNav.on('click', '.locate', function () {
           $('html,body').scrollTop(playerDataScreen !== 'web' ? player_offset_top - offset_top : 0)
         })
       }
       if (player_type === 'bangumi') {
-        const locateButtonHtml = '<div class="tool-item locate" title="定位至播放器">\n<svg t="1643419779790" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1775" width="200" height="200" style="width: 50%;height: 100%;fill: currentColor;"><path d="M512 352c-88.008 0-160.002 72-160.002 160 0 88.008 71.994 160 160.002 160 88.01 0 159.998-71.992 159.998-160 0-88-71.988-160-159.998-160z m381.876 117.334c-19.21-177.062-162.148-320-339.21-339.198V64h-85.332v66.134c-177.062 19.198-320 162.136-339.208 339.198H64v85.334h66.124c19.208 177.062 162.144 320 339.208 339.208V960h85.332v-66.124c177.062-19.208 320-162.146 339.21-339.208H960v-85.334h-66.124zM512 810.666c-164.274 0-298.668-134.396-298.668-298.666 0-164.272 134.394-298.666 298.668-298.666 164.27 0 298.664 134.396 298.664 298.666S676.27 810.666 512 810.666z" p-id="1776"></path></svg></div>'
-        const floatNav = $('.nav-tools')
-        const locateButton = $('.nav-tools .tool-item.locate')
+        const floatNav = $('[class*="navTools_floatNavExp"] [class*="navTools_navMenu"]')
+        const floatNavMenuItemClass = floatNav.children('a').children('div').attr('class').split(' ')[0]
+        const locateButtonHtml = `<div class="${floatNavMenuItemClass} locate" style="height:40px;padding:0" title="定位至播放器">\n<svg t="1643419779790" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1775" width="200" height="200" style="width: 50%;height: 100%;fill: currentColor;"><path d="M512 352c-88.008 0-160.002 72-160.002 160 0 88.008 71.994 160 160.002 160 88.01 0 159.998-71.992 159.998-160 0-88-71.988-160-159.998-160z m381.876 117.334c-19.21-177.062-162.148-320-339.21-339.198V64h-85.332v66.134c-177.062 19.198-320 162.136-339.208 339.198H64v85.334h66.124c19.208 177.062 162.144 320 339.208 339.208V960h85.332v-66.124c177.062-19.208 320-162.146 339.21-339.208H960v-85.334h-66.124zM512 810.666c-164.274 0-298.668-134.396-298.668-298.666 0-164.272 134.394-298.666 298.668-298.666 164.27 0 298.664 134.396 298.664 298.666S676.27 810.666 512 810.666z" p-id="1776"></path></svg></div>`
         floatNav.prepend(locateButtonHtml)
+        const locateButton = $(`${floatNavMenuItemClass}.locate`)
         locateButton.not(':first-child').remove()
         floatNav.on('click', '.locate', function () {
           $('html,body').scrollTop(playerDataScreen !== 'web' ? player_offset_top - offset_top : 0)
@@ -900,7 +901,7 @@ $(() => {
                   <span class="player-adjustment-setting-tips"> -> 网络条件好时可以启用此项，勾哪项选哪项，都勾选8k，否则选择4k及8k外最高画质。</span>
                   <label class="player-adjustment-setting-label"> 自动刷新
                   <input type="checkbox" id="Auto-Reload" ${getValue('auto_reload') ? 'checked' : ''
-        } class="player-adjustment-setting-checkbox">
+          } class="player-adjustment-setting-checkbox">
                 </label>
                 <span class="player-adjustment-setting-tips"> -> （不建议开启）若脚本执行失败是否自动刷新页面重试，开启后可能会对使用体验起到一定改善作用，但若是因为B站页面改版导致脚本失效，则会陷入页面无限刷新的情况，此时则必须在页面加载时看准时机关闭此项才能恢复正常，请自行选择是否开启。</span>
                 </div>
@@ -1008,7 +1009,7 @@ $(() => {
               // console.time('播放页调整：切换模式耗时')
               this.watchScreenModeChange()
               await sleep(100)
-              const selectedScreenMode = await this.autoSelectScreenMode() 
+              const selectedScreenMode = await this.autoSelectScreenMode()
               // console.timeEnd('播放页调整：切换模式耗时')
               if (selectedScreenMode && selectedScreenMode.done) {
                 if (selectedScreenMode !== 'unknow') logger.info(`屏幕模式｜${selectedScreenMode['mode'].toUpperCase()}｜切换成功`)
@@ -1028,6 +1029,7 @@ $(() => {
                 if (auto_locate && autoLocationDone) {
                   $('body').css('overflow', '')
                   logger.info('自动定位｜成功')
+                  await sleep(100)
                   this.insertBackToPlayerButton()
                   this.jumpVideoTime()
                 }
