@@ -2,7 +2,7 @@
 // @name              哔哩哔哩（bilibili.com）播放页调整
 // @license           GPL-3.0 License
 // @namespace         https://greasyfork.org/zh-CN/scripts/415804-bilibili%E6%92%AD%E6%94%BE%E9%A1%B5%E8%B0%83%E6%95%B4-%E8%87%AA%E7%94%A8
-// @version           0.27
+// @version           0.28
 // @description       1.自动定位到播放器（进入播放页，可自动定位到播放器，可设置偏移量及是否在点击主播放器时定位）；2.可设置是否自动选择最高画质；3.可设置播放器默认模式；
 // @author            QIAN
 // @match             *://*.bilibili.com/video/*
@@ -235,7 +235,7 @@ $(() => {
       })
     },
     pageReload () {
-      // location.reload(true)
+      if (auto_reload) location.reload(true)
     }
   }
   const {
@@ -253,6 +253,7 @@ $(() => {
     contain_quality_4k,
     contain_quality_8k,
     webfull_unlock,
+    auto_reload
   } = {
     is_vip: getValue('is_vip'),
     player_type: getValue('player_type'),
@@ -268,6 +269,7 @@ $(() => {
     contain_quality_4k: getValue('contain_quality_4k'),
     contain_quality_8k: getValue('contain_quality_8k'),
     webfull_unlock: getValue('webfull_unlock'),
+    auto_reload: getValue('auto_reload')
   }
   const m = {
     // 初始化设置参数
@@ -314,7 +316,10 @@ $(() => {
       }, {
         name: 'webfull_unlock',
         value: false,
-      },]
+      },{
+        name: 'auto_reload',
+        value: false,
+      }]
       value.forEach(v => {
         if (getValue(v.name) === undefined) {
           setValue(v.name, v.value)
@@ -341,7 +346,7 @@ $(() => {
           return new Promise(resolve => {
             const checkTimeout = setTimeout(() => {
               // logger.error('视频资源｜脚本检测失败｜重载页面')
-              // pageReload()
+              pageReload()
               resolve(false)
             }, 7000)
             $video.on('canplaythrough', () => {
@@ -407,7 +412,10 @@ $(() => {
       return Promise.resolve(equal)
     },
     // 自动选择屏幕模式
-    autoSelectScreenMode () {
+    async autoSelectScreenMode () {
+      // const current_screen_mode = await this.getCurrentScreenMode()
+      // if (current_screen_mode === 'wide') return { done: true, mode: selected_screen_mode}
+      // if (current_screen_mode === 'web') return { done: true, mode: selected_screen_mode}
       autoSelectScreenModeTimes++
       if (autoSelectScreenModeTimes === 1) {
         const wideEnterBtn = document.querySelector('.bpx-player-ctrl-wide-enter')
@@ -423,7 +431,7 @@ $(() => {
             setValue('current_screen_mode', selected_screen_mode)
             return {
               done: true,
-              mode: selected_screen_mode,
+              mode: selected_screen_mode
             }
           } else {
             await sleep(1000)
@@ -890,6 +898,11 @@ $(() => {
                     </label>
                   </div>
                   <span class="player-adjustment-setting-tips"> -> 网络条件好时可以启用此项，勾哪项选哪项，都勾选8k，否则选择4k及8k外最高画质。</span>
+                  <label class="player-adjustment-setting-label"> 自动刷新
+                  <input type="checkbox" id="Auto-Reload" ${getValue('auto_reload') ? 'checked' : ''
+        } class="player-adjustment-setting-checkbox">
+                </label>
+                <span class="player-adjustment-setting-tips"> -> （不建议开启）若脚本执行失败是否自动刷新页面重试，开启后可能会对使用体验起到一定改善作用，但若是因为B站页面改版导致脚本失效，则会陷入页面无限刷新的情况，此时则必须在页面加载时看准时机关闭此项才能恢复正常，请自行选择是否开启。</span>
                 </div>
                 `
         Swal.fire({
@@ -944,6 +957,9 @@ $(() => {
         $('#Webfull-Unlock').change(e => {
           setValue('webfull_unlock', e.target.checked)
         })
+        $('#Auto-Reload').change(e => {
+          setValue('auto_reload', e.target.checked)
+        })
       })
     },
     // 冻结视频标题及UP主信息样式
@@ -992,10 +1008,10 @@ $(() => {
               // console.time('播放页调整：切换模式耗时')
               this.watchScreenModeChange()
               await sleep(100)
-              const selectedScreenMode = selected_screen_mode !== 'close' ? await this.autoSelectScreenMode() : 'close'
+              const selectedScreenMode = await this.autoSelectScreenMode() 
               // console.timeEnd('播放页调整：切换模式耗时')
-              if ((selectedScreenMode && selectedScreenMode.done) || selectedScreenMode === 'close') {
-                if (selectedScreenMode !== 'close') logger.info(`屏幕模式｜${selectedScreenMode['mode'].toUpperCase()}｜切换成功`)
+              if (selectedScreenMode && selectedScreenMode.done) {
+                if (selectedScreenMode !== 'unknow') logger.info(`屏幕模式｜${selectedScreenMode['mode'].toUpperCase()}｜切换成功`)
                 this.autoCancelMute()
                 // console.time('播放页调整：选择画质耗时')
                 this.autoSelectVideoHightestQuality()
@@ -1029,7 +1045,7 @@ $(() => {
                   }
                 }
               } else {
-                logger.error(`屏幕模式｜${selectedScreenMode.mode}｜切换失败`)
+                logger.error(`屏幕模式｜切换失败｜autoSelectScreenMode()`)
                 pageReload()
               }
             } else {
