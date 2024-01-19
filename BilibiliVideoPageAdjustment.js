@@ -2,7 +2,7 @@
 // @name              哔哩哔哩（bilibili.com）播放页调整
 // @license           GPL-3.0 License
 // @namespace         https://greasyfork.org/zh-CN/scripts/415804-bilibili%E6%92%AD%E6%94%BE%E9%A1%B5%E8%B0%83%E6%95%B4-%E8%87%AA%E7%94%A8
-// @version           0.32
+// @version           0.33
 // @description       1.自动定位到播放器（进入播放页，可自动定位到播放器，可设置偏移量及是否在点击主播放器时定位）；2.可设置是否自动选择最高画质；3.可设置播放器默认模式；
 // @author            QIAN
 // @match             *://*.bilibili.com/video/*
@@ -62,16 +62,16 @@ $(() => {
     pageReload,
     scrollToPlayer
   } = {
-    getValue(name) {
+    getValue (name) {
       return GM_getValue(name)
     },
-    setValue(name, value) {
+    setValue (name, value) {
       GM_setValue(name, value)
     },
-    sleep(time) {
+    sleep (time) {
       return new Promise(resolve => setTimeout(resolve, time))
     },
-    addStyle(id, tag, css) {
+    addStyle (id, tag, css) {
       tag = tag || 'style'
       const doc = document
       const styleDom = doc.getElementById(id)
@@ -82,16 +82,16 @@ $(() => {
       tag === 'style' ? (style.innerHTML = css) : (style.href = css)
       document.head.appendChild(style)
     },
-    historyListener() {
+    historyListener () {
       class Dep {
         constructor(name) {
           this.id = new Date()
           this.subs = []
         }
-        defined() {
+        defined () {
           Dep.watch.add(this)
         }
-        notify() {
+        notify () {
           this.subs.forEach((e, i) => {
             if (typeof e.update === 'function') {
               try {
@@ -110,10 +110,10 @@ $(() => {
           this.id = new Date()
           this.callBack = fn
         }
-        add(dep) {
+        add (dep) {
           dep.subs.push(this)
         }
-        update() {
+        update () {
           var cb = this.callBack
           cb(this.name)
         }
@@ -146,12 +146,12 @@ $(() => {
         throttleAutoLocation()
       })
     },
-    checkBrowserHistory() {
+    checkBrowserHistory () {
       window.addEventListener('popstate', () => {
         m.autoLocation()
       })
     },
-    throttle(func, delay) {
+    throttle (func, delay) {
       let wait = false
       return (...args) => {
         if (wait) {
@@ -164,13 +164,13 @@ $(() => {
         }, delay)
       }
     },
-    getClientHeight() {
+    getClientHeight () {
       const bodyHeight = document.body.clientHeight || 0
       const docHeight = document.documentElement.clientHeight || 0
       return bodyHeight < docHeight ? bodyHeight : docHeight
     },
     // 检查指定HTML元素是否存在
-    checkElementExistence(selector, maxAttempts, interval) {
+    checkElementExistence (selector, maxAttempts, interval) {
       // functionExecutionsTimes += 1
       // const funName = (new Error()).stack.split("\n")[2].trim().split(" ")[1].replace('Object.', '')
       // logger.debug(`(调用：${functionExecutionsTimes}) ${funName} -> ${selector}`)
@@ -190,7 +190,7 @@ $(() => {
         }, interval)
       })
     },
-    isDocumentHidden() {
+    isDocumentHidden () {
       const visibilityChangeEventNames = ['visibilitychange', 'mozvisibilitychange', 'webkitvisibilitychange', 'msvisibilitychange']
       const documentHiddenPropertyName = visibilityChangeEventNames.find(name => name in document) || 'onfocusin' in document || 'onpageshow' in window ? 'hidden' : null
       if (documentHiddenPropertyName !== null) {
@@ -208,24 +208,24 @@ $(() => {
       // 如果无法判断是否隐藏，则返回undefined
       return undefined
     },
-    isLogin() {
+    isLogin () {
       return Boolean(document.cookie.replace(new RegExp(String.raw`(?:(?:^|.*;\s*)bili_jct\s*=\s*([^;]*).*$)|^.*$`), '$1') || null)
     },
     logger: {
-      info(content) {
+      info (content) {
         console.info('%c播放页调整', 'color:white;background:#006aff;padding:2px;border-radius:2px', content)
       },
-      warn(content) {
+      warn (content) {
         console.warn('%c播放页调整', 'color:white;background:#ff6d00;padding:2px;border-radius:2px', content)
       },
-      error(content) {
+      error (content) {
         console.error('%c播放页调整', 'color:white;background:#f33;padding:2px;border-radius:2px', content)
       },
-      debug(content) {
+      debug (content) {
         console.info('%c播放页调整(调试)', 'color:white;background:#cc00ff;padding:2px;border-radius:2px', content)
       },
     },
-    checkPageReadyState(state) {
+    checkPageReadyState (state) {
       return new Promise((resolve) => {
         const timer = setInterval(() => {
           if (document.readyState === state) {
@@ -235,10 +235,10 @@ $(() => {
         }, 100)
       })
     },
-    pageReload() {
+    pageReload () {
       if (auto_reload) location.reload(true)
     },
-    scrollToPlayer(offset){
+    scrollToPlayer (offset) {
       $('html,body').scrollTop(offset)
     }
   }
@@ -277,7 +277,7 @@ $(() => {
   }
   const m = {
     // 初始化设置参数
-    initValue() {
+    initValue () {
       const value = [{
         name: 'is_vip',
         value: false,
@@ -331,7 +331,7 @@ $(() => {
       })
     },
     // 检查视频资源是否加载完毕并处于可播放状态
-    async checkVideoCanPlayThrough() {
+    async checkVideoCanPlayThrough () {
       const BwpVideoPlayerExists = await checkElementExistence('bwp-video', 10, 10)
       // logger.debug(`bwp-video｜${BwpVideoPlayerExists?'存在':'不存在'}`)
       if (BwpVideoPlayerExists) {
@@ -378,13 +378,13 @@ $(() => {
       }
     },
     // 获取当前视频类型(video/bangumi)
-    getCurrentPlayerType() {
+    getCurrentPlayerType () {
       const isVideo = currentUrl.includes('www.bilibili.com/video') || currentUrl.includes('www.bilibili.com/list/')
       const isBangumi = currentUrl.includes('www.bilibili.com/bangumi')
       setValue('player_type', isVideo ? 'video' : isBangumi && 'bangumi')
     },
     // 获取当前屏幕模式(normal/wide/web/full)
-    async getCurrentScreenMode() {
+    async getCurrentScreenMode () {
       const exists = await checkElementExistence('#bilibili-player .bpx-player-container', 10, 100)
       if (exists) {
         const screenMode = $('#bilibili-player .bpx-player-container').attr('data-screen')
@@ -392,7 +392,7 @@ $(() => {
       } else return Promise.resolve(false)
     },
     // 监听屏幕模式变化(normal/wide/web/full)
-    watchScreenModeChange() {
+    watchScreenModeChange () {
       const screenModObserver = new MutationObserver(mutations => {
         const playerDataScreen = $('#bilibili-player .bpx-player-container').attr('data-screen')
         setValue('current_screen_mode', playerDataScreen)
@@ -403,7 +403,7 @@ $(() => {
       })
     },
     // 判断自动切换屏幕模式是否切换成功
-    async checkScreenModeSuccess(expect_mode) {
+    async checkScreenModeSuccess (expect_mode) {
       const current_screen_mode = await this.getCurrentScreenMode()
       const player_data_screen = $('#bilibili-player .bpx-player-container').attr('data-screen')
       const equal = new Set([
@@ -415,7 +415,7 @@ $(() => {
       return Promise.resolve(equal)
     },
     // 自动选择屏幕模式
-    async autoSelectScreenMode() {
+    async autoSelectScreenMode () {
       const current_screen_mode = await this.getCurrentScreenMode()
       if (current_screen_mode === 'wide') return { done: true, mode: selected_screen_mode }
       if (current_screen_mode === 'web') return { done: true, mode: selected_screen_mode }
@@ -456,7 +456,7 @@ $(() => {
       }
     },
     // 网页全屏解锁
-    fixedWebfullUnlockStyle() {
+    fixedWebfullUnlockStyle () {
       webfullUnlockTimes++
       if (webfullUnlockTimes === 1) {
         const clientHeight = getClientHeight()
@@ -510,7 +510,7 @@ $(() => {
       }
     },
     // 插入跳转评论按钮
-    insertGoToCommentsButton() {
+    insertGoToCommentsButton () {
       insertGoToCommentsButtonTimes++
       if (player_type === 'video' && webfull_unlock && insertGoToCommentsButtonTimes === 1) {
         const goToCommentsBtnHtml = '<div class="bpx-player-ctrl-btn bpx-player-ctrl-comment" role="button" aria-label="前往评论" tabindex="0"><div id="goToComments" class="bpx-player-ctrl-btn-icon"><span class="bpx-common-svg-icon"><svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="88" height="88" preserveAspectRatio="xMidYMid meet" style="width: 100%; height: 100%; transform: translate3d(0px, 0px, 0px);"><path d="M512 85.333c235.637 0 426.667 191.03 426.667 426.667S747.637 938.667 512 938.667a424.779 424.779 0 0 1-219.125-60.502A2786.56 2786.56 0 0 0 272.82 866.4l-104.405 28.48c-23.893 6.507-45.803-15.413-39.285-39.296l28.437-104.288c-11.008-18.688-18.219-31.221-21.803-37.91A424.885 424.885 0 0 1 85.333 512c0-235.637 191.03-426.667 426.667-426.667zm-102.219 549.76a32 32 0 1 0-40.917 49.216A223.179 223.179 0 0 0 512 736c52.97 0 103.19-18.485 143.104-51.67a32 32 0 1 0-40.907-49.215A159.19 159.19 0 0 1 512 672a159.19 159.19 0 0 1-102.219-36.907z" fill="#currentColor"/></svg></span></div></div>'
@@ -523,7 +523,7 @@ $(() => {
       }
     },
     // 添加返回播放器按钮
-    async insertBackToPlayerButton() {
+    async insertBackToPlayerButton () {
       const playerDataScreen = await this.getCurrentScreenMode()
       if (player_type === 'video') {
         const locateButtonHtml = '<div class="fixed-sidenav-storage-item locate" title="定位至播放器">\n<svg t="1643419779790" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1775" width="200" height="200" style="width: 50%;height: 100%;fill: currentColor;"><path d="M512 352c-88.008 0-160.002 72-160.002 160 0 88.008 71.994 160 160.002 160 88.01 0 159.998-71.992 159.998-160 0-88-71.988-160-159.998-160z m381.876 117.334c-19.21-177.062-162.148-320-339.21-339.198V64h-85.332v66.134c-177.062 19.198-320 162.136-339.208 339.198H64v85.334h66.124c19.208 177.062 162.144 320 339.208 339.208V960h85.332v-66.124c177.062-19.208 320-162.146 339.21-339.208H960v-85.334h-66.124zM512 810.666c-164.274 0-298.668-134.396-298.668-298.666 0-164.272 134.394-298.666 298.668-298.666 164.27 0 298.664 134.396 298.664 298.666S676.27 810.666 512 810.666z" p-id="1776"></path></svg></div>'
@@ -551,14 +551,18 @@ $(() => {
       }
     },
     // 自动定位至播放器
-    autoLocation() {
+    autoLocation () {
       const $player = $('#bilibili-player')
       const player_offset_top = Math.trunc($player.offset().top)
       setValue('player_offset_top', player_offset_top)
       return new Promise(resolve => {
         const isAutoLocate = auto_locate && ((!auto_locate_video && !auto_locate_bangumi) || (auto_locate_video && player_type === 'video') || (auto_locate_bangumi && player_type === 'bangumi'))
+
         if (!isAutoLocate || selected_screen_mode === 'web') {
+          logger.debug(selected_screen_mode === 'web')
           resolve(false)
+          // 未开启功能或模式为网页全屏时直接返回，防止代码继续执行进入死循环
+          return
         }
         scrollToPlayer(player_offset_top - offset_top)
         const applyAutoLocationInterval = setInterval(() => {
@@ -586,12 +590,12 @@ $(() => {
       })
     },
     // 点击播放器自动定位至播放器
-    async clickPlayerAutoLocation() {
+    async clickPlayerAutoLocation () {
       if (click_player_auto_locate) {
         const $player = $('#bilibili-player')
         const player_offset_top = Math.trunc($player.offset().top)
         $('#bilibili-player').on('click', handleClick)
-        function handleClick(event) {
+        function handleClick (event) {
           event.stopPropagation()
           // logger.info(`1:${player_offset_top}, 2:${offset_top}, 3:${player_offset_top - offset_top}`)
           scrollToPlayer(player_offset_top - offset_top)
@@ -599,7 +603,7 @@ $(() => {
       }
     },
     // 点击时间锚点自动返回播放器
-    async jumpVideoTime() {
+    async jumpVideoTime () {
       const clickTarget = player_type === 'video' ? '#comment' : '#comment_module'
       const $clickTarget = $(clickTarget)
       scrollToPlayer(player_offset_top - offset_top)
@@ -613,7 +617,7 @@ $(() => {
       })
     },
     // 自动取消静音
-    autoCancelMute() {
+    autoCancelMute () {
       autoCancelMuteTimes++
       const cancelMuteButtn = $('.bpx-player-ctrl-muted-icon')
       const cancelMuteButtnDisplay = cancelMuteButtn.css('display')
@@ -626,7 +630,7 @@ $(() => {
       }
     },
     // 自动选择最高画质
-    autoSelectVideoHightestQuality() {
+    autoSelectVideoHightestQuality () {
       autoSelectVideoHightestQualityTimes++
       if (!auto_select_video_highest_quality) return
       if (autoSelectVideoHightestQualityTimes === 1) {
@@ -664,7 +668,7 @@ $(() => {
       }
     },
     // 添加样式文件
-    addPluginStyle() {
+    addPluginStyle () {
       const style = `
         #playerAdjustment {
           height: 500px;
@@ -810,7 +814,7 @@ $(() => {
       }
     },
     // 注册脚本设置控件
-    registerMenuCommand() {
+    registerMenuCommand () {
       GM_registerMenuCommand('设置', () => {
         const html = `
                 <div id="playerAdjustment" style="font-size: 1em;">
@@ -957,7 +961,7 @@ $(() => {
       })
     },
     // 冻结视频标题及UP主信息样式
-    freezeHeaderAndVideoTitleStyles() {
+    freezeHeaderAndVideoTitleStyles () {
       $('#biliMainHeader').attr('style', 'height:64px!important')
       $('#viewbox_report').attr('style', 'height:106px!important;padding-top:24px!important')
       $('#v_upinfo').attr('style', 'height:80px!important')
@@ -966,11 +970,11 @@ $(() => {
       $('.members-info-v1 .wide-members-container .up-card .info-tag').attr('style', 'display:none!important')
     },
     // 判断当前窗口是否在最上方
-    isTopWindow() {
+    isTopWindow () {
       return window.self === window.top
     },
     // 前期准备函数
-    thePrepFunction() {
+    thePrepFunction () {
       thePrepFunctionRunningTimes++
       if (thePrepFunctionRunningTimes === 1) {
         isLogin()
@@ -984,7 +988,7 @@ $(() => {
       }
     },
     // 主函数
-    async theMainFunction() {
+    async theMainFunction () {
       try {
         theMainFunctionRunningTimes++
         if (theMainFunctionRunningTimes === 1) {
