@@ -559,7 +559,6 @@ $(() => {
         const isAutoLocate = auto_locate && ((!auto_locate_video && !auto_locate_bangumi) || (auto_locate_video && player_type === 'video') || (auto_locate_bangumi && player_type === 'bangumi'))
 
         if (!isAutoLocate || selected_screen_mode === 'web') {
-          logger.debug(selected_screen_mode === 'web')
           resolve(false)
           // 未开启功能或模式为网页全屏时直接返回，防止代码继续执行进入死循环
           return
