@@ -470,7 +470,7 @@ $(() => {
         })
         $('#app').prepend($('#bilibili-player.mode-webscreen'))
         $('#playerWrap').css('display', 'none')
-        logger.info('网页全屏解锁成功')
+        logger.info('网页全屏解锁｜成功')
         setValue('current_screen_mode', 'web')
         this.insertGoToCommentsButton()
         // 退出网页全屏
