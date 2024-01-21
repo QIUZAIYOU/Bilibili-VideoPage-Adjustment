@@ -2,7 +2,7 @@
 // @name              哔哩哔哩（bilibili.com）播放页调整
 // @license           GPL-3.0 License
 // @namespace         https://greasyfork.org/zh-CN/scripts/415804-bilibili%E6%92%AD%E6%94%BE%E9%A1%B5%E8%B0%83%E6%95%B4-%E8%87%AA%E7%94%A8
-// @version           0.34
+// @version           0.35
 // @description       1.自动定位到播放器（进入播放页，可自动定位到播放器，可设置偏移量及是否在点击主播放器时定位）；2.可设置是否自动选择最高画质；3.可设置播放器默认模式；
 // @author            QIAN
 // @match             *://*.bilibili.com/video/*
@@ -636,31 +636,31 @@ $(() => {
         let qualityValue, message
         if (is_vip) {
           if (!contain_quality_4k && !contain_quality_8k) {
-            qualityValue = $('.bpx-player-ctrl-quality > ul > li').filter(function () {
+            qualityValue = $('.bpx-player-ctrl-quality ul > li').filter(function () {
               const qualityText = $(this).children('span.bpx-player-ctrl-quality-text').text()
               return (!qualityText.includes('4K') && !qualityText.includes('8K'))
             })
             message = '最高画质｜VIP｜不包含4K及8K｜切换成功'
           } else if (contain_quality_4k && contain_quality_8k) {
-            qualityValue = $('.bpx-player-ctrl-quality > ul > li').filter(function () {
+            qualityValue = $('.bpx-player-ctrl-quality ul > li').filter(function () {
               return $(this).children('span.bpx-player-ctrl-quality-text').text().includes('8K')
             })
             message = '最高画质｜VIP｜8K｜切换成功'
           } else if (contain_quality_4k && !contain_quality_8k) {
-            qualityValue = $('.bpx-player-ctrl-quality > ul > li').filter(function () {
+            qualityValue = $('.bpx-player-ctrl-quality ul > li').filter(function () {
               return $(this).children('span.bpx-player-ctrl-quality-text').text().includes('4K')
             })
             message = '最高画质｜VIP｜4K｜切换成功'
           } else if (!contain_quality_4k && contain_quality_8k) {
-            qualityValue = $('.bpx-player-ctrl-quality > ul > li').filter(function () {
+            qualityValue = $('.bpx-player-ctrl-quality ul > li').filter(function () {
               return $(this).children('span.bpx-player-ctrl-quality-text').text().includes('8K')
             })
             message = '最高画质｜VIP｜8K｜切换成功'
           }
           qualityValue.eq(0).click()
         } else {
-          const selectVipItemLength = $('.bpx-player-ctrl-quality > ul > li').children('.bpx-player-ctrl-quality-badge-bigvip').length
-          $('.bpx-player-ctrl-quality > ul > li').eq(selectVipItemLength).click()
+          const selectVipItemLength = $('.bpx-player-ctrl-quality ul > li').children('.bpx-player-ctrl-quality-badge-bigvip').length
+          $('.bpx-player-ctrl-quality ul > li').eq(selectVipItemLength).click()
           message = '最高画质｜非VIP｜切换成功'
         }
         logger.info(message)
