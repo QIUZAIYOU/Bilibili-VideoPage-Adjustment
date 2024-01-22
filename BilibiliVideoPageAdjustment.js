@@ -2,7 +2,7 @@
 // @name              哔哩哔哩（bilibili.com）播放页调整
 // @license           GPL-3.0 License
 // @namespace         https://greasyfork.org/zh-CN/scripts/415804-bilibili%E6%92%AD%E6%94%BE%E9%A1%B5%E8%B0%83%E6%95%B4-%E8%87%AA%E7%94%A8
-// @version           0.35
+// @version           0.36
 // @description       1.自动定位到播放器（进入播放页，可自动定位到播放器，可设置偏移量及是否在点击主播放器时定位）；2.可设置是否自动选择最高画质；3.可设置播放器默认模式；
 // @author            QIAN
 // @match             *://*.bilibili.com/video/*
@@ -1005,10 +1005,11 @@ $(() => {
               // console.time('播放页调整：切换模式耗时')
               this.watchScreenModeChange()
               await sleep(100)
-              const selectedScreenMode = await this.autoSelectScreenMode()
+              // close 为功能关闭，勿改
+              const selectedScreenMode = selected_screen_mode !== 'close' ? await this.autoSelectScreenMode() : 'close'
               // console.timeEnd('播放页调整：切换模式耗时')
-              if (selectedScreenMode && selectedScreenMode.done) {
-                if (selectedScreenMode !== 'unknow') logger.info(`屏幕模式｜${selectedScreenMode['mode'].toUpperCase()}｜切换成功`)
+              if (selectedScreenMode && selectedScreenMode.done || selectedScreenMode === 'close') {
+                if (selectedScreenMode !== 'close') logger.info(`屏幕模式｜${selectedScreenMode['mode'].toUpperCase()}｜切换成功`)
                 this.autoCancelMute()
                 // console.time('播放页调整：选择画质耗时')
                 this.autoSelectVideoHightestQuality()
