@@ -509,7 +509,6 @@ $(() => {
         })
         // 退出全屏
         $('.bpx-player-ctrl-btn.bpx-player-ctrl-full').click(function () {
-          logger.debug('click')
           $('body').css({
             'padding-top': 0,
             position: 'auto',
