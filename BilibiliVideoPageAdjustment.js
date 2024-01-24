@@ -2,7 +2,7 @@
 // @name              哔哩哔哩（bilibili.com）播放页调整
 // @license           GPL-3.0 License
 // @namespace         https://greasyfork.org/zh-CN/scripts/415804-bilibili%E6%92%AD%E6%94%BE%E9%A1%B5%E8%B0%83%E6%95%B4-%E8%87%AA%E7%94%A8
-// @version           0.36
+// @version           0.37
 // @description       1.自动定位到播放器（进入播放页，可自动定位到播放器，可设置偏移量及是否在点击主播放器时定位）；2.可设置是否自动选择最高画质；3.可设置播放器默认模式；
 // @author            QIAN
 // @match             *://*.bilibili.com/video/*
@@ -506,6 +506,25 @@ $(() => {
           $('.float-nav-exp .mini').css('display', 'none')
           $('#danmukuBox').css('margin-top', '20px')
           $('html,body').scrollTop(0)
+        })
+        // 退出全屏
+        $('.bpx-player-ctrl-btn.bpx-player-ctrl-full').click(function () {
+          logger.debug('click')
+          $('body').css({
+            'padding-top': 0,
+            position: 'auto',
+          })
+          $('#playerWrap').css('display', 'block')
+          const playerWrapHeight = $('#playerWrap').height()
+          $('#bilibili-player').css({
+            height: playerWrapHeight,
+            position: 'unset',
+          })
+          $('#playerWrap').append($('#bilibili-player'))
+          setValue('selected_screen_mode', 'wide')
+          this.autoLocation()
+          setValue('selected_screen_mode', 'web')
+          $('.float-nav-exp .mini').css('display', '')
         })
       }
     },
