@@ -458,6 +458,26 @@ $(() => {
     // 网页全屏解锁
     fixedWebfullUnlockStyle () {
       webfullUnlockTimes++
+      async function resetPlayerLayout () {
+        $('body').css({
+          'padding-top': 0,
+          position: 'auto',
+        })
+        $('#playerWrap').css('display', 'block')
+        $('#bilibili-player').css({
+          height: 'auto',
+          position: 'unset',
+        })
+        $('#playerWrap').append($('#bilibili-player'))
+        $('.float-nav-exp .mini').css('display', '')
+        // 临时设置默认屏幕模式为宽屏用以触发执行自动定位至播放器，定位完后再重新改为网页全屏
+        setValue('selected_screen_mode', 'wide')
+        const playerDataScreen = await m.getCurrentScreenMode()
+        if (playerDataScreen !== 'full') {
+          m.autoLocation()
+        }
+        setValue('selected_screen_mode', 'web')
+      }
       if (webfullUnlockTimes === 1) {
         const clientHeight = getClientHeight()
         $('body.webscreen-fix').css({
@@ -475,21 +495,7 @@ $(() => {
         this.insertGoToCommentsButton()
         // 退出网页全屏
         $('.bpx-player-ctrl-btn-icon.bpx-player-ctrl-web-leave').click(function () {
-          $('body').css({
-            'padding-top': 0,
-            position: 'auto',
-          })
-          $('#playerWrap').css('display', 'block')
-          const playerWrapHeight = $('#playerWrap').height()
-          $('#bilibili-player').css({
-            height: playerWrapHeight,
-            position: 'unset',
-          })
-          $('#playerWrap').append($('#bilibili-player.mode-webscreen'))
-          setValue('selected_screen_mode', 'wide')
-          this.autoLocation()
-          setValue('selected_screen_mode', 'web')
-          $('.float-nav-exp .mini').css('display', '')
+          resetPlayerLayout()
         })
         // 再次进入网页全屏
         $('.bpx-player-ctrl-btn-icon.bpx-player-ctrl-web-enter').click(function () {
@@ -504,26 +510,15 @@ $(() => {
           $('#app').prepend($('#bilibili-player'))
           $('#playerWrap').css('display', 'none')
           $('.float-nav-exp .mini').css('display', 'none')
-          $('#danmukuBox').css('margin-top', '20px')
           $('html,body').scrollTop(0)
         })
-        // 退出全屏
+        // 进入退出全屏
         $('.bpx-player-ctrl-btn.bpx-player-ctrl-full').click(function () {
-          $('body').css({
-            'padding-top': 0,
-            position: 'auto',
-          })
-          $('#playerWrap').css('display', 'block')
-          const playerWrapHeight = $('#playerWrap').height()
-          $('#bilibili-player').css({
-            height: playerWrapHeight,
-            position: 'unset',
-          })
-          $('#playerWrap').append($('#bilibili-player'))
-          setValue('selected_screen_mode', 'wide')
-          this.autoLocation()
-          setValue('selected_screen_mode', 'web')
-          $('.float-nav-exp .mini').css('display', '')
+          resetPlayerLayout()
+        })
+        // 进入宽屏
+        $('.bpx-player-ctrl-btn-icon.bpx-player-ctrl-wide-enter').click(function () {
+          resetPlayerLayout()
         })
       }
     },
@@ -576,7 +571,7 @@ $(() => {
       return new Promise(resolve => {
         const isAutoLocate = auto_locate && ((!auto_locate_video && !auto_locate_bangumi) || (auto_locate_video && player_type === 'video') || (auto_locate_bangumi && player_type === 'bangumi'))
 
-        if (!isAutoLocate || selected_screen_mode === 'web') {
+        if (!isAutoLocate || getValue('selected_screen_mode') === 'web') {
           resolve(false)
           // 未开启功能或模式为网页全屏时直接返回，防止代码继续执行进入死循环
           return
@@ -1042,14 +1037,14 @@ $(() => {
                 const autoLocationDone = await this.autoLocation()
                 // console.timeEnd('播放页调整：自动定位耗时')
                 if (auto_locate && autoLocationDone) {
-                  $('body').css('overflow', '')
+                  $('body').css('overflow', 'auto')
                   logger.info('自动定位｜成功')
                   await sleep(100)
                   this.insertBackToPlayerButton()
                   this.jumpVideoTime()
                 }
                 if (!auto_locate || (auto_locate && auto_locate_bangumi && !auto_locate_video && player_type === 'video') || (auto_locate && auto_locate_video && !auto_locate_bangumi && player_type === 'bangumi')) {
-                  $('body').css('overflow', '')
+                  $('body').css('overflow', 'auto')
                   logger.info('自动定位｜未开启')
                 }
                 if (player_type === 'video') {
