@@ -658,9 +658,8 @@ $(() => {
           return $(this).children('span.bpx-player-ctrl-quality-text').text().includes('4K')
         }).eq(0)
         const notVip = $('.bpx-player-ctrl-quality ul > li').eq($('.bpx-player-ctrl-quality ul > li').children('.bpx-player-ctrl-quality-badge-bigvip').length)
-
         function autoSelectTargetQuality (target) {
-          target.click()
+          target.length ? target.click() : logger.error('最高画质丨切换失败丨未找到清晰度切换元素')
         }
         if (is_vip) {
           if (!contain_quality_4k && !contain_quality_8k) {
@@ -668,19 +667,11 @@ $(() => {
             message = '最高画质｜VIP｜不包含4K及8K｜切换成功'
           }
           if (contain_quality_4k && !contain_quality_8k) {
-            if (yes4K.length) {
-              autoSelectTargetQuality(yes4K)
-            } else {
-              autoSelectTargetQuality(no4K8K)
-            }
+            yes4K.length ? autoSelectTargetQuality(yes4K) : autoSelectTargetQuality(no4K8K)
             message = '最高画质｜VIP｜4K｜切换成功'
           }
           if ((contain_quality_4k && contain_quality_8k) || (!contain_quality_4k && contain_quality_8k)) {
-            if (yes8K.length) {
-              autoSelectTargetQuality(yes8K)
-            } else {
-              autoSelectTargetQuality(no4K8K)
-            }
+            yes8K.length ? autoSelectTargetQuality(yes8K) : autoSelectTargetQuality(no4K8K)
             message = '最高画质｜VIP｜8K｜切换成功'
           }
         } else {
