@@ -33,7 +33,7 @@ $(() => {
     autoCancelMuteTimes,
     webfullUnlockTimes,
     insertGoToCommentsButtonTimes,
-    autoSelectVideoHightestQualityTimes,
+    autoSelectVideoHighestQualityTimes,
     functionExecutionsTimes = 0,
   } = {
     currentUrl: window.location.href,
@@ -43,7 +43,7 @@ $(() => {
     autoCancelMuteTimes: 0,
     webfullUnlockTimes: 0,
     insertGoToCommentsButtonTimes: 0,
-    autoSelectVideoHightestQualityTimes: 0,
+    autoSelectVideoHighestQualityTimes: 0,
   }
   const {
     getValue,
@@ -642,43 +642,53 @@ $(() => {
       }
     },
     // 自动选择最高画质
-    autoSelectVideoHightestQuality () {
-      autoSelectVideoHightestQualityTimes++
+    autoSelectVideoHighestQuality () {
+      autoSelectVideoHighestQualityTimes++
       if (!auto_select_video_highest_quality) return
-      if (autoSelectVideoHightestQualityTimes === 1) {
-        let qualityValue, message
+      if (autoSelectVideoHighestQualityTimes === 1) {
+        let message
+        const no4K8K = $('.bpx-player-ctrl-quality ul > li').filter(function () {
+          const qualityText = $(this).children('span.bpx-player-ctrl-quality-text').text()
+          return (!qualityText.includes('4K') && !qualityText.includes('8K'))
+        }).eq(0)
+        const yes8K = $('.bpx-player-ctrl-quality ul > li').filter(function () {
+          return $(this).children('span.bpx-player-ctrl-quality-text').text().includes('8K')
+        }).eq(0)
+        const yes4K = $('.bpx-player-ctrl-quality ul > li').filter(function () {
+          return $(this).children('span.bpx-player-ctrl-quality-text').text().includes('4K')
+        }).eq(0)
+        const notVip = $('.bpx-player-ctrl-quality ul > li').eq($('.bpx-player-ctrl-quality ul > li').children('.bpx-player-ctrl-quality-badge-bigvip').length)
+        function autoSelectTargetQuality (target) {
+          target.click()
+        }
         if (is_vip) {
           if (!contain_quality_4k && !contain_quality_8k) {
-            qualityValue = $('.bpx-player-ctrl-quality ul > li').filter(function () {
-              const qualityText = $(this).children('span.bpx-player-ctrl-quality-text').text()
-              return (!qualityText.includes('4K') && !qualityText.includes('8K'))
-            })
+            autoSelectTargetQuality(no4K8K)
             message = '最高画质｜VIP｜不包含4K及8K｜切换成功'
-          } else if (contain_quality_4k && contain_quality_8k) {
-            qualityValue = $('.bpx-player-ctrl-quality ul > li').filter(function () {
-              return $(this).children('span.bpx-player-ctrl-quality-text').text().includes('8K')
-            })
-            message = '最高画质｜VIP｜8K｜切换成功'
-          } else if (contain_quality_4k && !contain_quality_8k) {
-            qualityValue = $('.bpx-player-ctrl-quality ul > li').filter(function () {
-              return $(this).children('span.bpx-player-ctrl-quality-text').text().includes('4K')
-            })
+          }
+          if (contain_quality_4k && !contain_quality_8k) {
+            if (yes4K.length) {
+              autoSelectTargetQuality(yes4K)
+            } else {
+              autoSelectTargetQuality(no4K8K)
+            }
             message = '最高画质｜VIP｜4K｜切换成功'
-          } else if (!contain_quality_4k && contain_quality_8k) {
-            qualityValue = $('.bpx-player-ctrl-quality ul > li').filter(function () {
-              return $(this).children('span.bpx-player-ctrl-quality-text').text().includes('8K')
-            })
+          }
+          if ((contain_quality_4k && contain_quality_8k) || (!contain_quality_4k && contain_quality_8k)) {
+            if (yes8K.length) {
+              autoSelectTargetQuality(yes8K)
+            } else {
+              autoSelectTargetQuality(no4K8K)
+            }
             message = '最高画质｜VIP｜8K｜切换成功'
           }
-          qualityValue.eq(0).click()
         } else {
-          const selectVipItemLength = $('.bpx-player-ctrl-quality ul > li').children('.bpx-player-ctrl-quality-badge-bigvip').length
-          $('.bpx-player-ctrl-quality ul > li').eq(selectVipItemLength).click()
+          autoSelectTargetQuality(notVip)
           message = '最高画质｜非VIP｜切换成功'
         }
         logger.info(message)
       }
-    },
+    }，
     // 添加样式文件
     addPluginStyle () {
       const style = `
@@ -1025,7 +1035,7 @@ $(() => {
                 if (selectedScreenMode !== 'close') logger.info(`屏幕模式｜${selectedScreenMode['mode'].toUpperCase()}｜切换成功`)
                 this.autoCancelMute()
                 // console.time('播放页调整：选择画质耗时')
-                this.autoSelectVideoHightestQuality()
+                this.autoSelectVideoHighestQuality()
                 // console.timeEnd('播放页调整：选择画质耗时')
                 this.clickPlayerAutoLocation()
                 if (webfull_unlock && selectedScreenMode.mode === 'web') {
