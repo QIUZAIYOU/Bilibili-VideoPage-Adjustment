@@ -688,7 +688,7 @@ $(() => {
         }
         logger.info(message)
       }
-    }，
+    },
     // 添加样式文件
     addPluginStyle () {
       const style = `
