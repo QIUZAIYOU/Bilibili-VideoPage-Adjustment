@@ -658,6 +658,7 @@ $(() => {
           return $(this).children('span.bpx-player-ctrl-quality-text').text().includes('4K')
         }).eq(0)
         const notVip = $('.bpx-player-ctrl-quality ul > li').eq($('.bpx-player-ctrl-quality ul > li').children('.bpx-player-ctrl-quality-badge-bigvip').length)
+
         function autoSelectTargetQuality (target) {
           target.click()
         }
